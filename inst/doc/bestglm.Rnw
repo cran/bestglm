@@ -1,0 +1,1550 @@
+\newcommand{\AIC}{\textsc{aic}}
+\newcommand{\BIC}{\textsc{bic}}
+\newcommand{\FPE}{\textsc{fpe}}
+\newcommand{\EBIC}{\textsc{bic$_\gamma$}}
+\newcommand{\BICg}{\textsc{bic}g}
+\newcommand{\PRESS}{\textsc{press}}
+\newcommand{\NID}{\textsc{nid}}
+\newcommand{\CV}{\textsc{cv}}
+\newcommand{\LOOCV}{\textsc{loocv}}
+\newcommand{\GLM}{\textsc{glm}}
+\newcommand{\LARS}{\textsc{lars}}
+\newcommand{\LASSO}{\textsc{lasso}}
+\newcommand{\QBIC}{\textsc{bic$_q$}}
+\newcommand{\BICq}{\textsc{bic}q}
+
+\def\Clmd{$\textsc{c}_{\lambda}$\,}
+\def\AICz{\textsc{aic}}
+\def\BICz{\textsc{bic}}
+\def\EBICz{$\textsc{bic}_\gamma$}
+\def\QBICz{$\textsc{bic}_q$}
+\def\BICsz{\textsc{bics}}
+\def\Clmdz{$\textsc{c}_{\lambda}$}
+\def\CVdz{$\textsc{cv}_d$}
+\def\CVz{$\textsc{cv}$}
+\def\SNRz{\textsc{snr}}
+\def\pr{{\rm pr}\,}
+
+
+\documentclass[article,nojss]{jss}
+\usepackage{amsmath}
+\DeclareGraphicsExtensions{.pdf,.eps}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+
+\author{A. I. McLeod\\University of Western Ontario \And
+        Changiang Xu\\University of Western Ontario}
+\Plainauthor{A. I. McLeod, Changjiang Xu}
+
+\title{\pkg{bestglm}: Best Subset GLM}
+\Plaintitle{bestglm: Best Subset GLM}
+
+\Keywords{best subset GLM, AIC, BIC, extended BIC, cross-validation}
+\Plainkeywords{best subset GLM, AIC, BIC, extended BIC, cross-validation}
+
+\Abstract{
+Functions are provided for selecting the best subset of inputs for
+the \GLM~ family.
+The criterion available include a variety of information criteria as well as cross-validation.
+Several examples are provided to show that this approach is sometimes
+more accurate than using the built-in R function \code{step}.
+In the Gaussian case the leaps-and-bounds algorithm in \pkg{leaps} is used
+provided that there are no factor variables with more than two levels.
+In the non-Gaussian \GLM case or when there are factor variables present
+with three or more levels, a simple exhaustive enumeration approach is used.
+This vignette also explains how the applications given in our
+article \citet{Xu2009} may easily be reproduced.
+A separate vignette is available to provide more details
+about the simulation results reported in \citet[Table 2]{Xu2009}
+and to explain how the results may be reproduced.
+}
+
+\Address{
+  A.I. McLeod\\
+  University of Western Ontario\\
+  E-mail: \email{aimcleod@uwo.ca}\\
+  Changjiang Xu\\
+  University of Western Ontario\\
+  E-mail: \email{cxu49@uwo.ca}
+}
+  
+
+\begin{document}
+
+\SweaveOpts{engine=R,eps=FALSE}
+%\VignetteIndexEntry{bestglm: Best subset GLM}
+%\VignetteDepends{leaps}
+%\VignetteKeywords{best subset GLM, AIC, BIC, BICg, BICq, extended BIC, cross-validation}
+%\VignettePackage{bestglm}
+
+
+<<preliminaries,echo=FALSE,results=hide>>=
+online <- FALSE ## if set to FALSE the local copy of MSFT.rda
+                ## is used instead of get.hist.quote()
+options(prompt = "R> ")
+@
+
+\section[Introduction]{Introduction} 
+\label{sec:intro}
+We consider the \GLM\, of $Y$ on $p$ inputs, ${X_1, \ldots, X_p}$.
+In many cases, $Y$ can be more parsimoniously modelled and predicted using
+just a subset of $m<p$ inputs, $X_{i_1}, \ldots, X_{i_m}$.
+The best subset problem is to find out of all the $2^p$ subsets, the
+best subset according to some goodness-of-fit criterion.
+The built-in \proglang{R} 
+function \code{step} may be used to find a best subset
+using a stepwise search.
+This method is expedient and often works well.
+When $p$ is not too large, \code{step}, may be used for a backward search
+and this typically yields a better result than a forward search.
+But if $p$ is large, then it may be that only a forward search is feasible
+due to singularity or multicollinearity.
+In many everyday regression problems we have $p \le 50$ and in this case
+an optimization method known as leaps-and-bounds may be utilized to find the
+best subset.
+More generally when $p \le 15$ a simple direct lexicographic algorithm
+\citep[Algorithm L]{Knuth2005} may be used to enumerate all possible models.
+Some authors have criticized the {\it all subsets} approach on the grounds
+that it is too computationally intensive.
+The term data dredging has been used.
+This criticism is not without merit since it must be recognized that
+the signficance level for the $p$-values of the coefficients in the model will be
+overstated -- perhaps even extremely so.
+Furthermore for prediction purposes, the LASSO or regularization method may outperform
+the subset model's prediction.
+Nevertheless there are several important applications for subset selection methods.
+In many problems, it is of interest to determine which are the most influential variables.
+For many data mining methods such as neural nets or support vector machines,
+feature selection plays an important role and here too subset selection can help.
+The idea of data-dredging is somewhat similar to the concern about over-training
+with artifical neural nets.
+In both cases, there does not seem to be any rigorous justification of choosing
+a suboptimal solution.
+In the case of \GLM and linear models our package provides a variety
+of criterion for choosing a parsimonious subset or collection of possible subsets.
+ 
+
+In the case of linear regression,
+\citet{Miller2002} provides a monograph length treatment of this problem while
+\citet[Ch. 3]{HTF2009} discuss the subset approach along with other recently developed
+methods such as \LARS~ and \LASSO.
+Consider the case of linear regression with 
+$n$ observations, $(x_{i,1},\ldots,x_{i,p}, y_i), i=1,\ldots,n$
+we may write the regression,
+\begin{equation}
+y_i = \beta_0 + \beta_1 x_{i,1} + \ldots + \beta_p x_{i,p} + e_i.
+\end{equation}
+When $n>p$ all possible $2^p$ regressions could be fit and the best fit
+according to some criterion could be found.
+When $p \le 25$ or thereabouts, an efficient combinatorial algorithm,
+known as branch-and-bound can be applied to determine the model with the lowest
+residual sum of squares of size $m$ for $m=1,\ldots,p$ and more generally
+the $k$ lowest subsets for each $m$ may also be found.
+
+
+The \pkg{leaps} package \citep{LumleyMiller2004} implements the branch-and-bound algorithm as well
+as other subset selection algorithms.
+Using the \pkg{leaps} function, \code{regsubsets}, 
+the best model of size $k, k=1,\ldots,p$ may be determined in a few seconds
+when $p \le 25$ on a modern personal computer.
+Even larger models are feasible but since, in the general case, the computer
+time grows exponentially with $p$, problems with large enough $p$ such as $p>100$, can not be
+solved by this method.
+An improved branch-and-bound algorithm is given by \citet{Gatu2006}
+but the problem with exponential time remains.
+
+One well-known and widely used alternative to the best subset approach is the family
+of stepwise and stagewise algorithms \citet[Section 3.3]{HTF2009}.
+This is often feasible for larger $p$ although it may select a sub-optimal
+model as noted by \citet{Miller2002}.
+For very large $p$ \citet{ChenChen2008} suggest a tournament algorithm
+while \pkg{subselect} \citep{Cadima2004, Cerdeira2009} uses high dimensional optimization algorithms such as genetic
+search and simulated annealing for such problems.
+
+Using subset selection algorithm necessarily involves a high degree of selection
+bias in the fitted regression.
+This means that the $p$-values for the regression coefficients are overstated, that is,
+coefficients may appear to be statistically signficant when they are not.
+\citep{Wilkinson1981}
+and the $R^2$ are also inflated \citet{RencherAndFu1980}.
+
+More generally for the family of \GLM\  models similar considerations about selection bias and computational
+complexity apply.
+\citet{Hosmer1989} discuss an approximate method for best subsets in logistic regression.
+No doubt there is scope for the development of more efficient branch-and-bound algorithms
+for the problem of subset selection in \GLM\ models.
+See \citet{Brusco2005} for a recent monograph of the statistical applications of the branch-and-bound algorithm.
+We use the lexicographically method suggested by \citet{Morgan72} for the all subsets regression
+problem to enumerate the loglikelihoods for all possible \GLM\ model.
+Assuming there are $p$ inputs, there are then $2^p$ possible subsets which may be 
+enumerated by taking $i=0,\ldots,2^p-1$ and using the base-2 representation of
+$i$ to determine the subset.
+This method is quite feasible on present PC workstations for $p$ not too large.
+
+\subsection[Prostate Cancer Example]{Prostate Cancer Example}
+\label{subProstate}
+
+As an illustrative example of the subset regression problem we consider
+the prostate data discussed by \citet{HTF2009}.
+In this dataset there are 97 observations on men with prostate cancer.
+The object is to predict and to find the inputs most closely related
+with the outcome variable Prostate-Specific Antigen (psa).
+In the general male population, the higher the psa, the greater the chance
+that prostate cancer is present.
+
+To facilitate comparison with the results given in the textbook as well as
+with other techniques such as LARS, we have standardized all inputs.
+The standardized prostate data is available in \code{zprostate}
+in our  \pkg{bestglm} package and is summarized below,
+
+<<bestglm-zprostate>>=
+library(bestglm)
+data(zprostate)
+@
+
+
+<<PRINTzprostate>>=
+str(zprostate)
+@
+
+The outcome is \code{lpsa} which is the logarithm of the psa.
+In \citet[Table 3.3]{HTF2009} only the training set portion is used.
+In the training portion there are $n=67$ observations.
+
+Using \code{regsubsets} in \pkg{leaps} we find subsets of size
+$m=1,\ldots,8$ which have the smallest residual sum-of-squares.
+
+<<bestglm-train>>=
+train<-(zprostate[zprostate[,10],])[,-10]
+X<-train[,1:8]
+y<-train[,9]
+out <- summary(regsubsets(x = X, y = y, nvmax=ncol(X)))
+Subsets <- out$which
+RSS <- out$rss
+@
+
+<<print1>>=
+cbind(as.data.frame(Subsets), RSS=RSS)
+@
+
+The residual sum-of-squares decreases monotonically as the number of inputs
+increases.
+
+\subsection[Overview of bestglm Package]{Overview of bestglm Package}
+\label{subOverview}
+
+\code{bestglm} uses the simple exhaustive search algorithm \citep{Morgan72} for \GLM\ 
+and the \code{regsubsets} function in the \pkg{leaps} package
+to find the GLM models with smallest sum of squares or deviances for size $k=0,1,\ldots,p$.
+Size $k=0$ corresponds to intercept only.
+The exhaustive search requires more computer time but this is usually not
+an issue when $p<=10$.
+For example, we found that a logistic regression with
+$p=10$ requires about 12.47 seconds as compared with only 0.04 seconds
+for a comparably size linear regression.
+The timing difference would not be important in typical data analysis
+applications but could be a concern in simulation studies.
+In this case, if a multi-core PC or even better a computer cluster is available,
+we may use the \pkg{Rmpi} package.
+Our vignette \citet{XuReport2009} provides an example of using \pkg{Rmpi}
+with \pkg{bestglm}.
+
+\subsection[Package Options]{Package Options}
+\label{subPackageOptions}
+
+The arguments and their default values are:
+
+<<bestglmbicqArgs>>=
+args(bestglm)
+@
+
+The argument \code{Xy} is usually a data-frame containing in the first
+$p$ columns the design matrix and in the last column the response.
+For binomial GLM, the last two columns may represent counts $S$ and $F$
+as in the usual \code{glm} function when the {\tt family=binomial}
+option is used.
+For compatibility with the \pkg{leaps} package, \code{Xy} may also
+be an \code{lm} or \code{biglm} object.
+
+When \code{family} is set to \code{gaussian}, the function
+\code{regsubsets} in \pkg{leaps} is used provided that all inputs are
+quantitative or that there are no factor inputs with more than two levels.
+When factor inputs at more than two levels are present,
+the exhaustive enumeration method is used and in this case the
+\proglang{R} function \code{lm} is used in the \code{gaussian} case.
+For all non-Gaussian models, the \proglang{R} function \code{glm}
+is used with the exhaustive enumeration method.
+
+The arguments \code{IC}, \code{t}, \code{CVArgs}, \code{qLevel} and \code{TopModels}
+are used with various model selection methods. 
+The model selection methods available are based on either
+an information criterion or cross-validation.
+The information criteria and cross-validation methods are
+are discussed in the Sections \ref{sec:IC} and \ref{sec:CV}.
+
+The argument \code{method} is simply passed on to the function
+\code{regsubsets} when this function from the \pkg{leaps} package is used.
+The arguments \code{intercept} and \code{nvmax}
+are also passed on to \code{regsubsets} or may be used in the exhaustive
+search with a non-Gaussian GLM model is fit.
+These two arguments are discussed briefly in 
+Sections \ref{subInterceptTerm} and \ref{subLimitingNumberVariables}.
+
+The argument \code{RequireFullEnumerationQ} is provided to force the use
+of the slower exhaustive search algorithm when the faster algorithm
+in the \pkg{leaps} package would normally be used.
+This is provided only for checking.
+
+The output from \code{bestglm} is a list with named components
+<<bestglmbicqOut>>=
+Xy<-cbind(as.data.frame(X), lpsa=y)
+out<-bestglm(Xy)
+names(out)
+@
+
+The components \code{BestModel}, \code{BestModels}, \code{Subsets}, \code{qTable} and \code{Bestq}
+are of interest and are described in the following table.
+
+\begin{tabular}{ll}
+name            & description \cr \cr
+BestModel       & lm or glm object giving the best model \cr
+BestModels      & a $T \times p$ logical matrix showing which variables are included in the top $T$ models \cr
+Bestq           & matrix with 2 rows indicating the upper and lower ranges \cr
+Subsets         & a $(p+1) \times p$ logical matrix showing which variables are included for \cr
+                &subset sizes $k=0,\ldots,p$ have the smallest deviance \cr
+qTable          & a table showing all possible model choices for different intervals of $q$.
+\end{tabular}
+
+\subsection[Intercept Term]{Intercept Term}
+\label{subInterceptTerm}
+
+Sometimes it may be desired not to include an intercept term in the model.
+Usually this occurs when the response to the inputs is thought to be proportional.
+If the relationship is multiplicative of the form $Y=e^{\beta_1 X_1 + \ldots + \beta_p X_p}$
+then a linear regression through the origin of $\log Y$ on $X_1, \ldots, X_p$ may be
+appropriate.
+
+Another, but not recommended use, of this option is to set \code{intercept} to \code{FALSE}
+and then include a column of 1's in the design matrix to represent the intercept term.
+This will enable one to exclude the intercept term if it is not statistically significant.
+Usually the intercept term is always included even if it is not statistically significant
+unless there are prior reasons to suspect that the regression may pass through the origin.
+
+Cross-validation methods are not available in the regression through the origin case.
+
+\subsection[Limiting the Number of Variables]{Limiting the Number of Variables}
+\label{subLimitingNumberVariables}
+
+The argument \code{nvmax} may be used to limit the number of possible explanatory
+variables that are allowed to be included.
+This may be useful when $p$ is quite large.
+Normally the information criteria will eliminate unnecessary variables automatically and so
+when the default setting is used for \code{nvmax} all models up to an including the full
+model with $p$ inputs are considered.
+
+Cross-validation methods are not available when \code{nvmax} is set to a value less than $p$.
+
+\subsection[Forcing Variables to be Included]{Forcing Variables to be Included}
+\label{subForcingVariablesIncluded}
+
+In some applications, the model builder may wish to require that some variables
+be included in all models.
+This could be done by using the residuals from a regression with the required variables as
+inputs with a design matrix formed from the optional variables.
+For this reason, the optional argument \code{force.in} used in \pkg{leaps} 
+is not implemented in \pkg{bestglm}.
+
+\section[Information criteria]{Information criteria}
+\label{sec:IC}
+
+Information criteria or cross-validation is used to select the best model
+out of these $p+1$ model cases, $k=0,1,\ldots,p$. 
+The information criterion include the usual AIC and BIC as well as two types of 
+extended \BIC\  \citep{ChenChen2008, Xu2009}.
+These information criteria are discussed in the Section \ref{sec:IC}.
+
+When the information criterion approach is used, it is possible to select
+the best $T$ models out of all possible models by setting the optional
+argument \code{TopModels = T}.
+
+The information criterion we consider are all based on a penalized form of the deviance
+or minus twice the log-likelihood.
+In the multiple linear regression the deviance ${\cal D} = - 2\log{\cal L}$, where
+$\cal L$ is the maximized log-likelihood, $\log {\cal L} = -(n/2) \log {\cal S}/n$,
+where $\cal S$ is the residual sum of squares.
+
+
+\subsection[AIC]{AIC}
+\label{subsec:aic}
+\citet{Akaike1974} showed that $\AIC = {\cal D} + 2 k$, where $k$ is the number of parameters, provides
+an estimate of the entropy.
+The model with the smallest \AIC\  is preferred.
+Many other criterion which are essentially equivalent to the \AIC\  have also been suggested.
+Several other asymptotically equivalent but more specialized criterion were suggested
+In the context of autoregressive models, \citet{Akaike1970} suggested the final prediction
+error criterion, $\FPE = \hat \sigma^2_k (1 + 2 k/n)$, where $\hat \sigma^2_k$ is the
+estimated residual variance in a model with $k$ parameters.
+and in the subset regression problem, \citet{Mallows1973} suggesed using
+$C_k = S_k/{\hat \sigma_2} + 2 k - n$, where $S_k$ is the residual sum-of-squares for
+a model with $k$ inputs and $\hat \sigma_2$ is the residual variance using all $p$ inputs.
+\cite{Nishii1984} showed that minimizing $C_k$ or \FPE\  is equivalent to minimizing
+the AIC.
+In practice, with small $n$, these criterion often select the same model.
+From the results of \citep{Shibata1981}, the AIC is asympotically efficient but not consistent.
+
+\subsubsection[Best AIC Model for Prostate Data]{Best AIC Model for Prostate Data}
+\label{subsubsec:aic}
+
+<<bestglm-aic>>=
+bestglm(Xy, IC="AIC")
+@
+
+The best subset model using \AIC\ has 7 variables and two of them are not 
+even significant at 5\%.
+
+\subsection[BIC]{BIC}
+\label{subsec:bic}
+The \BIC\ criterion \citep{Schwarz1978} can be derived using Bayesian methods as
+discussed by \citet{ChenChen2008}.
+If a uniform prior is assumed of all possible models, the usual \BIC\ criterion
+may be written, $\BIC = {\cal D} + k \log(n)$.
+The model with the smallest \BIC\ corresponds to the model with maximum posterior probability.
+The difference between these criterion is in the penalty.
+When $n>7$, the \BIC\ penalty is always larger than for the \AIC\ and consequently
+the \BIC\ will never select models with more parameters than the \AIC.
+In practice, the BIC often selects more parsimonious models than the \AIC.
+In time series forecasting experiments, time series models selected using
+the \BIC\ often outperform \AIC\ selected models \citep{Noakes1985, Koehler1988, GrangerJeon}.
+On the other hand, sometimes the \BIC\ underfits and so in some applications,
+such as autoregressive-spectral density estimation and for generating synthetic
+riverflows and simulations of other types of time series data, it may be preferable
+to use the \AIC\ \citep{PercivalWalden}.
+
+\subsubsection[Best BIC Model for Prostate Data]{Best BIC Model for Prostate Data}
+\label{subsubsec:bic}
+
+<<bestglm-bic>>=
+bestglm(Xy, IC="BIC")
+@
+
+Note that \code{IC="BIC"} is the default.
+
+\subsection[BICg]{BICg}
+\label{subsec:ebicg}
+The notation \BICg\ and \EBIC\ will be used interchangeably.
+In mathematical writing \EBIC\ is preferred but in our \proglang{R} code
+the parameter is denoted by \BICg.
+\citet{ChenChen2008} observed that in large $p$ problems, the \BIC\ tends to select models
+with too many parameters and suggested that instead of a prior uniform of all
+possible models, a prior uniform of models of fixed size.
+The general form of the \EBIC\ criterion can be written,
+\begin{equation}
+\EBIC = {\cal D} + k \log(n) + 2 \gamma \log {p \choose k}
+\end{equation}
+where $\gamma$ is an adjustable parameter, $p$ in the number of possible input variables not
+counting the bias or intercept term and $k$ is the number of parameters in the model.
+Taking $\gamma=0$ reduces to the BIC.
+Notice that mid-sized models have the largest models, while $k = 0$, corresponding to only
+an intercept term and $k=p$ corresponding to using all parameters are equally likely
+a priori.
+As pointed out in \cite{Xu2009} this prior is not reasonable because it is
+symmetric, giving large models and small models equal prior probability.
+
+\subsubsection[Best BICg Model for Prostate Data]{Best BICg Model for Prostate Data}
+\label{subsubsec:bicg}
+
+<<bestglm-bicg>>=
+bestglm(Xy, IC="BICg")
+@
+
+\subsection[BICq]{BICq}
+\label{subsec:bicq}
+
+As with the \EBIC\ the notation \BICq\ and \QBIC\ will be used interchangably.
+
+The \QBIC\ criterion \citep{Xu2009} is derived by assuming a Bernouilli prior for the parameters.
+Each parameter has a priori probability of $q$ of being included, where $q \in [0,1]$.
+With this prior, the resulting information criterion can be written,
+\begin{equation}
+BIC_q = {\cal D} + k \log(n) - 2 k \log q/(1-q).
+\end{equation}
+When $q=1/2$, the BICq is equivalent to the BIC
+while $q=0$ and $q=1$ correspond to selecting the models with $k=p$ and $k=0$ respectively.
+Moreover, $q$ can be chosen 
+to give results equivalent to the BICg for any $\gamma$ or the AIC \cite{Xu2009}.
+When other information criteria are used with \code{bestglm}, the range of the $q$ parameter
+that will produce the same result is shown.
+For example in \ref{subsubsec:bicg}, we see that $q \in (0.0176493852011195, 0.512566675362627)$ produces an equivalent result.
+
+For $q=0$, the penalty is taken to be $-\infty$ and so no parameters are selected
+and similarly for $q=1$, the full model with all covariates is selected.
+
+\citet{Xu2009} derive an interval estimate for $q$ that is based on a confidence
+probability $\alpha$, $0<\alpha<1$. 
+This parameter may be set by the optional argument \code{qLevel} $ = \alpha$.
+The default setting is with $\alpha = 0.99$.
+
+\subsubsection[Theorem for q-Interval Calculation]{Theorem for q-Interval Calculation}
+\label{subsubsec:TheoremQ}
+
+Consider the generalized information criterion \citep{Akaike79},
+\begin{equation}\label{Clmd}
+\textsc{c}_{\lambda}(k)=-2 \log L(\hat\theta_k) + \lambda k,
+\end{equation}
+where $-\infty < \lambda <\infty$ is an adaptive penalty.
+The criterion is called \AICz-type if $\lambda$ is a constant
+and \BICz-type if $\lambda$ depends on $n$.
+The consistency property of \BIC is shared by any \BICz-type criterion that has a penalty of the form $\lambda k$
+satisfying $\lambda \rightarrow\infty$ and $\lambda/n \rightarrow 0$ as $n\rightarrow \infty$~\citep{Shao97, Yang05}.
+For each $q$, \QBIC is the same as \Clmd with $\lambda=\log n-2\log q/(1-q)$.
+Conversely, for each $\lambda$, there exists a
+$q = ( 1 + n^{-0.5} e^{0.5\lambda} )^{-1}$
+such that \QBIC is the same as \Clmdz.
+Hence \QBIC is equivalent to \Clmdz.
+
+As $\lambda$ varies between $-\infty$ and $+\infty$, $\argmin_k \textsc{c}_{\lambda}(k)$ varies between
+$0$ and $K$.
+Denote these values by $k_0 < \ldots < k_{\cal K}$, where ${\cal K} \le K$ is the number
+of different model sizes that can be selected, $k_0 = 0$ and $k_{\cal K} = K$.
+Each of these possible models sizes, $k_i, i=0,\ldots, \cal K$ corresponds to a range
+$\lambda$ values, $d_{1,k_i} < \lambda < d_{2, k_i}$.
+The following Lemma gives explicit formula for determining these ranges.
+For simplicity, let ${\cal L}_k = \log L(\hat\theta_k)$.
+
+\begin{lemma}\label{LemmaClmd}
+Set
+$$
+\begin{array}{rl}
+d_{1,k} &= \min_{j<k} 2({\cal L}_j - {\cal L}_k)/(j-k), k=1,\ldots, K;\\
+d_{2,k} &= \max_{j>k} 2({\cal L}_j - {\cal L}_k)/(j-k), k=0,\ldots,K-1;
+\end{array}
+$$
+$d_{2,K}=-\infty$
+and
+$d_{1,0}=\infty$.
+The model of size $k$ is selected using the criterion \Clmd
+if $d_{2,k} < \lambda < d_{1,k}$.
+If $\lambda = d_{i,k}$, there is a tie between adjacent model sizes.
+\end{lemma}
+
+By setting $\lambda=\log n-2\log q/(1-q)$,
+the following theorem can be directly derived from Lemma~\ref{LemmaClmd}.
+
+\begin{theorem}\label{Theoremq}
+The \QBIC\ can select the model size $k$ if and only if $q_{1,k} \le q \le q_{2,k}$,
+where $q_{i,k} = ( 1 + n^{-0.5} e^{0.5 d_{i,k}} )^{-1}$,
+$k = 0, \dots, K$.
+When $q_{1,k} > q_{2,k}$ the model of size $k$ cannot be selected.
+\end{theorem}
+
+From Theorem~\ref{Theoremq}, the best choice of $q$ is not unique and corresponds to an interval.
+Assuming the true model is of size $k_0$ then
+the best choice is $q\in (q_{1,k_0}, q_{2,k_0})$.
+For $k>k_0$, $2({\cal L}_k - {\cal L}_{k-1}) \sim \chi^2_1$ asymptotically
+and hence $\pr(d_{1,k} \le \xi) \ge \alpha$,
+where $\xi$ is the $\alpha$ quantile of $\chi_1^2$,
+since $d_{1,k} \le 2({\cal L}_k - {\cal L}_{k-1})$.
+Conversely, if $d_{1,k}>\xi$
+then $k>k_0$ would be not true with confidence probability $\alpha$.
+Let $d_{1,k_1}$ be the smallest $d_{1,k}$ subject to $d_{1,k}>\xi$.
+The corresponding value of $q$, $q_{1,k_1}$, is obtained by Theorem~\ref{Theoremq}.
+%$q_{1,k_1} = ( 1 + n^{-0.5} e^{0.5d_{1,k_1}} )^{-1}$.
+The $q_{1,k_1}$ is a lower bound for $q$
+because it corresponds to $d_{1,k_1}>\xi$
+and so $k_1\le k_0$ with confidence probability greater than or equal to $\alpha$.
+
+Notice that $2({\cal L}_j - {\cal L}_k)  \sim \chi^2_{j-k}$ asymptotically for $j > k \geq k_0$,
+and
+$2({\cal L}_j - {\cal L}_k) \sim \chi^2_{j-k}(\delta)$ asymptotically for $j>k_0>k$,
+where $\delta>0$ is a non-centrality parameter.
+Hence as $k$ decreases from $K$ to $k_0$,
+the difference, $d_{1,k}-d_{2,k}$, has a jump increase at $k_0$.
+Let $d_{2,k_2}$ be the value $d_{2,k}$ for which $d_{1,k}-d_{2,k}$ is largest
+subject to $d_{1,k}\le\xi$,
+and denote the corresponding value of $q$ by $q_{2,k_2}$.
+Since $d_{2,k_2}<d_{1,k_2}\le \xi <d_{1,k_1}$,
+$q_{1,k_1}<q_{2,k_2}$,
+$(q_{1,k_1}, q_{2,k_2})$ provides an interval for choosing $q$,
+which covers $(q_{1,k_1}, q_{2,k_1})$ and $(q_{1,k_2}, q_{2,k_2})$.
+When $\xi\le\delta$,
+$(q_{1,k_0}, q_{2,k_0}) \subseteq (q_{1,k_1}, q_{2,k_2})$
+and $q_{2,k_2}=q_{2,k_0}$ asymptotically
+with confidence probability greater than or equal to $\alpha$.
+Often we take $\alpha=0.99$ and then $\xi = 6.63$.
+
+\subsubsection[Numerical Illustration for Theorem]{Numerical Illustration for Theorem}
+\label{subsubsec:NumericalIllustration}
+
+In \citet[Table 1]{Xu2009} we provided a brief illustrations of the computation
+of the intervals for $q$ given by our Theorem.
+
+<<bestglmNumericalExample>>=
+set.seed(1233211235)
+p<-5   #number of inputs
+n<-100  #number of observations
+X<-matrix(rnorm(n*p), ncol=p)
+err<-rnorm(n)
+y<- 0.1*(X[,1]+X[,2]+X[,3])+err
+Xy<-as.data.frame(cbind(X,y))
+names(Xy)<-c(paste("X",1:p,sep=""),"y")
+ans <- bestglm(Xy)
+ans$Subsets
+@
+
+<<bestglmNumericalExampleContinued>>=
+ans$qTable
+@
+
+In \citet[Table 1]{Xu2009} we added 20 to the value of the log-likelihood.
+
+\subsubsection[Best BICq Model for Prostate Data]{Best BICq Model for Prostate Data}
+\label{subsubsec:bicq}
+
+
+
+Using the \QBIC\ with its default choice for the tuning parameter $q = t$,
+
+<<bestglmbicq>>=
+data(zprostate)
+train<-(zprostate[zprostate[,10],])[,-10]
+X<-train[,1:8]
+y<-train[,9]
+Xy<-cbind(as.data.frame(X), lpsa=y)
+out <- bestglm(Xy, IC="BICq")
+@
+
+
+
+
+\section[Cross-Validation]{Cross-Validation}
+\label{sec:CV}
+
+Cross-validation approaches to model selection have a long history and have
+been widely used.
+
+Cross-validation for model selection is also available in \code{bestglm} function.
+The old standard, leave-one-out cross-validation (\LOOCV) is implemented along
+with the more modern methods: K-fold and delete-d cross-valiation (CV).
+Our experience suggests that the delete-d CV performs best with $d$ chosen
+using eqn. (\ref{eqFord}). 
+
+All CV methods work by first narrowing the field to the best models of
+size $k$ for $k=0,1,\ldots,p$ and then comparing each of these models
+$p+1$ possible models using cross-validation to select the best one.
+The best model of size $k$ is chosen as the one with the 
+smallest deviance.  
+This means for GLM the model with the largest likelihood and
+in the Gaussian case this is the smallest sum-of-squares.
+
+\subsection{Delete-d Cross-Validation}
+\label{subsec:ddCV}
+
+Probably the best CV method for use with model selection in linear regression
+is the delete-d method suggested by \citet{Shao93}.
+In the random sampling version of this algorithm, random samples of size $d$ are used
+as the validation set.
+Many validation sets are generated in this way and the complementary part of the data
+is used each time as the training set.
+Typically 1000 validation sets are used.
+
+When $d=1$, the delete-d is similar to LOOCV (\ref{subsec:loocv}) and 
+should give the same result if enough validation sets are used.
+
+\citet{Shao97} shows that when $d$ increases with $n$, this method will be consistent.
+Note that $K$-fold cross-validation is approximately equivalent taking $d \approx n/K$.
+But \citet{Shao97} recommends a much larger cross-validation sample than is customarily used
+in $K$-fold CV.
+Letting $\lambda_n = \log n$ as suggested \citet[page 236, 4th line of last paragraph]{Shao97}
+and using \citet[eqn. 4.5]{Shao97}, we obtain 
+\begin{equation}
+d=n (1-(\log n - 1)^{-1}),
+\label{eqFord}
+\end{equation}
+where $n$ is the number of observations.
+The table below compares the validation sample size using this recommended value with
+$k$-fold CV when $k=5$ or $k=10$.
+
+\begin{tabular}{llll}
+   $n$  &  $d$   &  $K=10$   &  $K=5$   \cr
+   50 &  33  &  5      &  10    \cr
+  100 &  73  &  10     &  20   	\cr
+  200 & 154  &  20     &  40   	\cr
+  500 & 405  &  50     &  100   \cr
+ 1000 & 831  &  100    &  200  	\cr
+\end{tabular}
+
+
+\subsubsection[Best Delete-d Model for Prostate Data]{Best Delete-d Model for Prostate Data}
+\label{subsubsec:loocv}
+
+The default for \code{IC="CV"} is delete-d with $d$ as in eqn. (\ref{eqFord})
+and with 100 replications.  With only 100 replications, the answer may be depend
+on the initial seed.
+
+<<bestglmDeleted>>=
+set.seed(123321123)
+bestglm(Xy, IC="CV")
+@
+
+The number of replications can be from 100 to 1000 by using \code{t=1000}
+in the list arguments. This required about 50 seconds and produced the same
+result; suggesting convergence has been obtained. 
+Convergence was verified by repeating the simulation 100 times and noting
+that the same result was obtained each time.
+
+
+\subsection{K-fold}
+\label{subsec:kfold}
+
+\cite{HTF2009}  discuss $K$-fold CV.
+Instead of removing only one data point, the data are divided into folds of approximately
+equal size.
+These folds form a partition of the the observations ${1,\ldots,n}$,
+where $n$ is the total number of observations.
+We will denote the set of elements in the $k$th partition by $\Pi_k$.
+
+For the prostate training data with $n=67$ and using $K=10$ folds,
+
+<<bestglmfolds>>=
+set.seed(2377723)
+ind<-sample(rep(1:10,length=67))
+ind
+@
+We see that the observations in $\Pi_1$ are,
+<<bestglmfoldsPiOne>>=
+(1:67)[1==ind]
+@
+and the values of $N_k, k=1,\ldots,10$ are:
+<<bestglmfolds>>=
+tabulate(ind)
+@
+
+It is important to note that the choice of folds depends on the random
+number generator and so the result may change unless a fixed seed is used.
+Another possibility is to do more replications and average the results.
+
+Using folds in this way gives a balanced replication as opposed to the purely
+random resampling in the delete-d method.
+However, as we will, using one replication, as is often done, does not produce
+reliable results in the sense that the result will depend on the initial state
+of the random number generator!
+This can be simply remedied by replicating K-fold cross validation many times.
+However, even in this case, the results do not seem to be as good as with
+the delete-d method using eqn. \ref{eqFord}.
+
+\citet{HTF2009} suggest using the ``one-standard deviation'' rule with K-fold cross-validation.
+\cite{Breiman1984} originally suggesting rule for selecting the best prunned CART.
+
+In this approach the validation sum-of-squares is computed for each of
+the $K$ validation samples, 
+\begin{equation}
+S_k = \sum\lim_{i \in \Pi_k} ( \hat e^{(-k)_i} )^2,
+\end{equation}
+where
+$e^{(-k)_i}$ denotes the prediction error when the $k$th validation sample
+is removed, the model fit to the remainder of the data and then used to predict
+the observations $i \in \Pi_k$ in the validation sample.
+The final cross-validation score is
+\begin{equation}
+\CV = {1 \over n} \sum_{k=1}^K S_k
+\end{equation}
+where $n$ is the number of observations.
+In each validation sample we may obtain the estimate of the cross-validation
+mean-square error,
+$\CV_k =  S_k/N_k$, where
+$N_k$ is the number of observations in the $k$th validation sample.
+Let $s$ be the sample variance of $\CV_1,\ldots,\CV_K$.
+Then an interval estimate for CV, using the one-standard-devation rule, is $\CV \pm 0.5 s$.
+
+When applied to model selection, this suggests that instead of selecting the model
+with the smallest CV, the most parsimonious adequate model will correspond to the
+model with the largest CV which is still inside this interval.
+
+This rule is implemented when the \code{HTF} CV method is used in our \code{bestglm}
+function.
+By a careful choice of seed, we are able to reproduce the result from \citet{HTF2009},
+
+<<bestglmCVHTF>>=
+set.seed(2377723)
+out<-bestglm(Xy, IC="CV", CVArgs=list(Method="HTF", K=10, REP=1)) 
+out
+@
+
+In Figure \ref{fig:plotHTF} below we reproduce one of the
+graphs shown in \citep[page 62, Figure 3.3]{HTF2009} that illustrates
+how the one-standard deviation rule works for model selection.
+
+<<plotCVHTF,eval=FALSE>>=
+CV<-out$Subsets[,"CV"]
+sdCV<-out$Subsets[,"sdCV"]
+CVLo<-CV-0.5*sdCV
+CVHi<-CV+0.5*sdCV
+ymax<-max(CVHi)
+ymin<-min(CVLo)
+k<-0:(length(CV)-1)
+plot(k, CV, xlab="Subset Size", ylab="CV Error", ylim=c(ymin,ymax), type="n", yaxt="n")
+points(k, CV, cex=2, col="red", pch=16)
+lines(k, CV, col="red", lwd=2)
+axis(2, yaxp=c(0.6,1.8,6))
+segments(k, CVLo, k, CVHi, col="blue", lwd=2)
+eps<-0.15
+segments(k-eps, CVLo, k+eps, CVLo, col="blue", lwd=2)
+segments(k-eps, CVHi, k+eps, CVHi, col="blue", lwd=2)
+#cf. oneSDRule
+indMin <- which.min(CV)
+fmin<-sdCV[indMin]
+cutOff <- fmin/2 + CV[indMin]
+indRegion <- cutOff > CV
+Offset <- sum(cumprod(as.numeric(!indRegion)))
+TheMins <- (cutOff-CV)[indRegion]
+indBest<-Offset + (1:length(TheMins))[(min(TheMins)==TheMins)]
+abline(h=cutOff, lty=2)
+abline(v=indBest-1, lty=2)
+@
+
+\begin{figure}[h!]
+\begin{center}
+<<plotCVHTF-repeat,fig=TRUE,height=4,width=6,echo=FALSE>>=
+<<plotCVHTF>>
+@
+\caption{\label{fig:plotHTF} Model selection with 10-fold cross-validation and 1-sd rule}
+\end{center}
+\end{figure}
+
+However the results are quite variable using this rule.
+The result of 1000 simulations using this rule are shown below.
+It is seen that almost half the time, a model with only one
+input, \code{lcavol}, is selected.
+The model chosen by \cite{HTF2009} is only selected about 14\%
+of the time.
+
+\begin{tabular}{lllllllll}
+Number of inputs selected &  1 &  2 &  3  & 4 &  5 &  6 &  7  & 8 \\
+Frequency in 1000 simulations &499& 142&  65&  43& 120&  29&  20&  82 
+\end{tabular}
+
+Using \code{REP=100}, we the selected model has only \code{lcavol} selected.
+This was repeated 100 times and the selection remained the same.
+
+\subsection{Bias Correction}
+\label{subsec:DHCV}
+
+\citet[Algorithm 6.5, p.295]{Davison97} suggested an adjusted CV statistic which corrects for bias.
+As with regular $K$-fold CV, this method has quite variable in small samples.
+As recommended by \citet{Davison97}, we simply select the model with the lowest CV score.
+
+Running the program 3 times produces 3 different results.
+<<bestglmCVDH>>=
+set.seed(2377723)
+bestglm(Xy, IC="CV", CVArgs=list(Method="DH", K=10, REP=1))
+bestglm(Xy, IC="CV", CVArgs=list(Method="DH", K=10, REP=1)) 
+bestglm(Xy, IC="CV", CVArgs=list(Method="DH", K=10, REP=1))  
+@
+After 1000 simulations, the results are summarized below.
+\begin{tabular}{lllllllll}
+Number of inputs selected &  1 &  2 &  3  & 4 &  5 &  6 &  7  & 8 \\
+Frequency in 1000 simulations & 0 &  0 & 23  &61  &64 &289 &448 &115
+\end{tabular}
+
+When \code{REP} is increased to 100, the result converges the model with 7 inputs.
+It takes about 66 seconds.
+Using \code{REP=100} many times, it was found
+that models with 7 inputs were selected 95% of the time and models with 6 inputs were selected.
+
+\subsection[LOOCV]{Leave-one-out Cross-Validation}
+\label{subsec:loocv}
+
+For completeness we include leave-one-out CV (\LOOCV) but this method is not recommended
+because the model selection is not usually as accurate as either of the other CV methods discussed above.
+This is due to the high variance of this method \citep[Section 7.10]{HTF2009}.
+
+In leave-one-out CV (\LOOCV), one observation, say the $i$, is removed, the regression is refit and the
+prediction error, $\hat e_{(i)}$ for the missing observation is obtained.
+This process is repeated for all observations $i=1,\ldots,n$ and the prediction error
+sum of squares is obtained,
+\begin{equation}
+\PRESS = \sum\limits_{i=1}^n \hat e_{(i)}^2.
+\end{equation}
+In the case of linear regression, leave-out-CV can be computed very efficiently using the
+PRESS method \citep{Allen1971},
+$\hat e_{(i)} =\hat e_{i}$
+where
+$\hat e_{i}$ is the usual regression residual and $h_{i,i}$ is the $i$-th element on the
+diagonal of the hat matrix $H = X X^{\prime} X)^{-1} X^{\prime}$.
+\citet{Stone77} showed that asymptotically LOOCV is equivalent to the AIC.
+The computation is very efficient.
+
+\subsubsection[Best LOOCV Model for Prostate Data]{Best LOOCV Model for Prostate Data}
+\label{subsubsec:loocv}
+
+<<bestglmLOOCV>>=
+bestglm(Xy, IC="LOOCV")
+@
+
+\section[Examples from our BICq Paper]{Examples from our BICq Paper}
+\label{sec:ImprovedEG}
+
+The following examples were briefly discussed in our paper
+``Improved Extended Bayesian Information Criterion'' \citep{Xu2009}.
+
+\subsection[Hospital Manpower Data]{Hospital Manpower Data}
+\label{subsec:Hospital}
+
+This dataset was used as an example in our paper \cite[Example 1]{Xu2009}.
+We commented on the fact that both the AIC and BIC select the same
+model with 3 variables even though one of the variables is not even
+signficant at the 5\% level and has the incorrect sign.
+
+<<bestglmManpowerAIC>>=
+data(manpower)
+bestglm(manpower, IC="AIC")
+@
+
+<<bestglmManpowerBIC>>=
+bestglm(manpower, IC="BIC")
+@
+
+In this case the BIC$_\gamma$ is completely useless
+selecting the full model when $\gamma=1$ or $\gamma=0.5$.
+
+<<bestglmManpowerBICg>>=
+bestglm(manpower, IC="BICg")
+@
+
+<<bestglmManpowerBICghalf>>=
+bestglm(manpower, IC="BICg", t=0.5)
+@
+
+Finally, with the BIC$_q$ with its default choice, $q=0.25$,
+<<bestglmManpowerBICq>>=
+out<-bestglm(manpower, IC="BICq")
+out
+@
+
+The optimal range of $q$ includes $q=0.25$,
+
+<<bestglmManpowerBestq>>=
+out$Bestq
+@
+
+The calculations for the best $q$ may be checked using
+
+<<bestglmManpowerSubsets>>=
+out$Subsets
+@
+
+and
+
+<<bestglmManpowerqTable>>=
+out$qTable
+@
+
+\subsection{South Afrian Heart Disease}
+\label{subsec:SAheart}
+
+The response variable, \code{chd}, indicates the presence or absence
+of coronary heart disease and there are nine inputs.
+The sample size is 462.
+Logistic regression is used.
+The full model is, 
+
+<<bestglmSAheartBinomialFULL>>=
+data(SAheart)
+out<-bestglm(SAheart, IC="BICq", t=1, family=binomial)
+out
+@
+
+We find that the bounding interval for $q$ is $0.191 \le q \le 0.901$.
+For values of $q$ in this interval a model with 5 inputs:
+\code{tobacco}, \code{ldl}, \code{famhist}, \code{typea} and \code{age}
+and as expected all variables have very low $p$-values.
+Using $q$ in the interval $0.094<q<0.190$ results in a subset
+of the above model which excludes \code{ldl}.
+Using cross-validation \citet[\S 4.4.2]{HTF2009} also
+selected a model for this data with only four inputs but
+their subset excluded \code{typea} instead of \code{ldl}.
+
+It is interesting that the subset chosen in \citet[Section 4.4.2]{HTF2009}
+may be found using two other suboptimal procedures.
+First using the $\QBIC$ with $q=0.25$ and the \proglang{R} function \code{step},
+
+<<bestglmSAheartBinomialStep>>=
+ans<-glm(chd~., data=SAheart)
+q<-0.25
+n<-nrow(SAheart)
+k<-log(n) - 2*log(q/(1-q))
+step(ans, k=k)
+@
+
+Even with $q=0.1$ in the above script only {\tt tobacco},  {\tt famhist} and {\tt age} are selected.
+And using $q=0.5$ in the above script with \code{step} selects the same model the \BIC selects
+when exhaustive enumeration is done using \code{bestglm}.
+This example points out that using \code{step} for subset selection may produce
+a suboptimal answer.
+
+Yet another way that the four inputs selected by \citet[Section 4.4.2]{HTF2009} 
+could be obtained is to use least squares with \code{bestglm} to find the model
+with the best four inputs.
+
+<<bestglmSAheartBinomialGaussian>>=
+out<-bestglm(SAheart, IC="BICq", t=0.25)
+out$Subsets
+@
+
+
+\section[Other Illustrative Examples]{Other Illustrative Examples}
+\label{sec:FEG}
+
+\subsection{Nuclear Power Plant Data}
+\label{subsec:nuclear}
+
+<<bestglmNuclear>>=
+data(znuclear)
+bestglm(znuclear, IC="AIC")
+@
+
+\subsection[Detroit Homicide Data]{Detroit Homicide Data}
+\label{subsec:Detroit}
+
+Our analysis will use the six inputs which generate the lowest
+residual sum of squares.
+These inputs are 1, 2, 4, 6, 7 and 11 as given in Miller (2002, Table 3.14).
+We have scaled the inputs, although this is not necessary in this example.
+Using backward step-wise regression in \proglang{R}, 
+no variables are removed.
+But note that variables 1, 6 and 7 are all only significant at about 5\%.
+Bearing in mind the selection effect, the true significance is much less.
+
+<<bestglmDetroit1>>=
+data(Detroit)
+X<-as.data.frame(scale(Detroit[,c(1,2,4,6,7,11)]))
+y<-Detroit[,ncol(Detroit)]
+Xy<-cbind(X,HOM=y)
+out <- lm(HOM~., data=Xy)
+step(out, k=log(nrow(Xy)))
+@
+
+Same story with exhaustive search algorithm.
+<<bestglmDetroit2>>=
+out<-bestglm(Xy, IC="BIC")
+out
+@
+
+We can use BICq to reduce the number of variables.
+The \code{qTable} let's choose q for other possible models.
+
+<<bestglmDetroit2>>=
+out$qTable
+@
+
+This suggest we try q=0.05 
+<<bestglmDetroit3>>=
+bestglm(Xy,IC="BICq", t=0.05)
+@
+
+Or q=0.0005.
+<<bestglmDetroit3>>=
+bestglm(Xy,IC="BICq", t=0.00005)
+@
+
+The above results agree with Miller (2002, Table 3.14).
+It is interesting that the subset model of size 2 is not a subset
+itself of the size 3 model. 
+It is clear that simply adding and/or dropping one variable at a time as
+in the stepwise and stagewise algorithms will not work in moving either from
+model 2 to model 3 or vice-versa.
+
+Using delete-d CV with d=4 suggests variables 2,4,6,11
+<<bestglmDetroit4>>=
+set.seed(1233211)
+bestglm(Xy, IC="CV", CVArgs=list(Method="d", K=4, REP=50))
+@
+
+\subsection{Air Quality Data}
+\label{subsec:AirQuality}
+
+Here is an example of a dataset with categorical variables at more than 2 levels.
+First we look at the full model,
+<<bestglmAirQualityFullModel>>=
+data(AirQuality)
+bestglm(AirQuality,IC="BICq",t=1)
+@
+
+Next we find the best AIC model,
+<<bestglmAirQualityAIC>>=
+bestglm(AirQuality,IC="AIC")
+@
+
+\subsection{Forest Fires}
+\label{subsec:FFires}
+
+The forest fire data were collected during January 2000 to December 2003 for fires in the Montesinho 
+natural park located in the Northeast region of Portugal.  
+The response variable of interest was area burned in ha.  
+When the area burned as less than one-tenth of a hectare, the response variable as set to zero.  
+In all there were 517 fires and 247 of them recorded as zero.  
+
+The dataset was provided by \citet{CortezMorais2007} who also fit this data using
+neural nets and support vector machines.
+  
+The region was divided into a 10-by-10 grid with coordinates X and Y running from 1 to 9
+as shown in the diagram below.
+The categorical variable \code{xyarea} indicates the region in this grid for the fire.  
+There are 36 different regions so \code{xyarea} has 35 df.
+
+@
+\begin{figure}[h!]
+\centering
+\includegraphics[height=2in]{Figure2Cortez.pdf}
+\caption{Montesinho Park}
+\label{CortezFigure}
+\end{figure}
+
+Fitting the best-AIC regression,
+
+<<bestglmFiresAIC>>=
+data(Fires)
+bestglm(Fires, IC="AIC")
+@
+
+The regression with all variables included,
+
+<<bestglmFiresAll>>=
+bestglm(Fires, IC="BICq", t=1)
+@
+
+
+
+\section[Simulated Data]{Simulated Data}
+\label{sec:SIMDATA}
+
+\subsection[Null Regression Example]{Null Regression Example}
+\label{subsec:NullRegressionExample}
+
+Here we check that our function handles the null regression case where there are no inputs to include in the model.
+We assume an intercept term only.
+
+<<bestglmManpowerNullRegression>>=
+set.seed(123312123)
+X<-as.data.frame(matrix(rnorm(50), ncol=2, nrow=25))
+y<-rnorm(25)
+Xy<-cbind(X, y=y)
+bestglm(Xy)
+@
+
+
+\subsection[Logistic Regression]{Logistic Regression}
+\label{subsec:LogisticRegression}
+
+As a check we simulate a logistic regression with $K=10$ inputs.
+The inputs are all Gaussian white noise with unit variance.
+So the model equation may be written,
+$Y$ is IID Bernouilli distribution with parameter $p$,
+$p={\cal E}(Y) = h(\beta_0 + \beta_1 X_1 + \ldots + \beta_K X_K)$
+where $h(x) = (1 + e^{-x})^{-1}$.
+Note that $h$ is the inverse of the logit transformation
+and it may coveniently obtained in \proglang{R} using \code{plogist}.
+In the code below we set $\beta_0 = a = -1$
+and $\beta_1 = 3$, $\beta_2 = 2$, $\beta_3 = 4/3$, $\beta_4 = 2 {2\over 3}$
+and $\beta_i = 0, i=5,\ldots,10$.
+Taking $n=500$ as the sample size we find after fit with \code{glm}.
+
+
+<<bestglmLogistic>>=
+set.seed(231231)
+n<-500
+K<-10 #number of inputs not counting constant
+a<--1
+b<-c(c(9,6,4,8)/3, rep(0, K-4))
+X<-matrix(rnorm(n*K), ncol=K)
+L<-a+X%*%b
+p<-plogis(L)
+Y<-rbinom(n=n, size=1, prob=p)
+X<-as.data.frame(X)
+#X<-as.matrix.data.frame(X)
+out<-glm(Y~., data=X, family=binomial)
+summary(out)
+@
+
+As might be expected, none of the parameters are significantly different from
+their expectations.
+
+Next we fit using \code{bestglm} to find the best model.
+For comparison with the 'leaps' algorithm we record the time.
+
+<<bestglmLogisticTimingA>>=
+Xy<-data.frame(X, y=Y)
+startTimeA <- proc.time()[1] #user
+outA<-bestglm(Xy, family=binomial)
+endTimeA <- proc.time()[1] #user
+TotalTimeA<-endTimeA-startTimeA
+startTimeB <- proc.time()[1] #user
+@
+
+We see that the correct model was selected,
+
+<<bestglmLogisticOutputA>>=
+outA
+@
+
+To compare, we fit using \code{family=gaussian},
+
+<<bestglmLogisticTimingB>>=
+startTimeB <- proc.time()[1] #user
+outB<-bestglm(Xy)
+endTimeB <- proc.time()[1] #user
+TotalTimeB<-endTimeB-startTimeB
+@
+
+As might be expected, in this case, linear regression selects the
+same four inputs as logistic regression did.
+
+<<bestglmLogisticOutputB>>=
+outB
+@
+
+As might be expected, in this case, linear regression selects the
+same four inputs as logistic regression did.
+But the time is much faster using 'leaps'.
+
+<<bestglmLogisticFinalTiming>>=
+Tim<-c(TotalTimeA,TotalTimeB)
+names(Tim)<-c("MorganTatar","leaps")
+Tim
+@
+
+\subsection[Binomial Regression]{Binomial Regression}
+\label{subsec:BinomialRegression}
+
+As a further check we fit a binomial regression taking $n=500$ with $K=10$ inputs
+and with Bernouilli number of trials $m=100$.
+So in this case the model equation may be written,
+$Y$ is IID binomially distributed with number of trials $m=10$ and parameter $p$,
+$p={\cal E}(Y) = h(\beta_0 + \beta_1 X_1 + \ldots + \beta_K X_K)$
+where $h(x) = (1 + e^{-x})^{-1}$.
+We used the same $\beta$'s as in Section \ref{subsec:LogisticRegression}.
+
+<<bestglmBinomial>>=
+set.seed(231231)
+n<-500
+K<-8 #number of inputs not counting constant
+m<-100 #binomial - number of trials
+a<-2
+b<-c(c(9,6,4,8)/10, rep(0, K-4))
+X<-matrix(rnorm(n*K), ncol=K)
+L<-a+X%*%b
+p<-plogis(L)
+Y<-rbinom(n=n, size=m, prob=p)
+Y<-cbind(Y, m-Y)
+dimnames(Y)[[2]]<-c("S","F")
+X<-as.data.frame(X)
+out<-glm(Y~., data=X, family=binomial)
+summary(out)
+@
+
+In this example, one input {\tt V6} is signficant at level 0.03 even though its
+correct coefficient is zero.
+
+<<bestglmBinomialBestModel>>=
+Xy<-cbind(X, Y)
+bestglm(Xy, family=binomial)
+@
+
+Using the default selection method, BIC, the correct model is selected.
+
+\subsection[Binomial Regression With Factor Variable]{Binomial Regression With Factor Variable}
+\label{subsec:BinomialRegressionFactorVariable}
+
+An additional check was done to incorporate a factor variable.
+We include a factor input representing the day-of-week effect.
+The usual corner-point method was used to parameterize this variable
+and large coefficients chosen, so that this factor would have a strong
+effect.
+Using the corner-point method, means that the model matrix will have
+six additional columns of indicator variables.
+We used four more columns of numeric variables and then added the six
+columns for the indicators to simulate the model.
+
+
+<<bestglmBinomialFactorVariable>>=
+set.seed(33344111)
+n<-500
+K<-4 #number of quantitative inputs not counting constant
+m<-100 #binomial - number of trials
+a<-2 #intercept
+dayNames<-c("Sunday","Monday","Tuesday","Wednesday","Friday","Saturday")
+Days<-data.frame(d=factor(rep(dayNames, n))[1:n])
+Xdays<-model.matrix(~d, data=Days)
+bdays<-c(7,2,-7,0,2,7)/10
+Ldays<-Xdays%*%bdays
+b<-c(c(9,6)/10, rep(0, K-2))
+X<-matrix(rnorm(n*K), ncol=K)
+L<-a+X%*%b
+L<-L + Ldays
+p<-plogis(L)
+Y<-rbinom(n=n, size=m, prob=p)
+Y<-cbind(Y, m-Y)
+dimnames(Y)[[2]]<-c("S","F")
+X<-as.data.frame(X)
+X<-data.frame(X, days=Days)
+out<-glm(Y~., data=X, family=binomial)
+anova(out,test="Chisq")
+@
+
+After fitting with \code{glm} we find the results as expected.
+The factor variable is highly signficant as well as the first two quantiative variables.
+
+Using \code{bestglm}, we find it selects the correct model.
+
+<<bestglmBinomialFactorVariableBestModel>>=
+Xy <- cbind(X, Y)
+out<-bestglm(Xy, IC="BICq", family=binomial)
+out
+@
+
+
+
+\subsection[Poisson Regression]{Poisson Regression}
+\label{subsec:PoissonRegression}
+
+<<bestglmPoissonSimulate>>=
+set.seed(231231)
+n<-500
+K<-4 #number of inputs not counting constant
+a<- -1
+b<-c(c(1,0.5), rep(0, K-2))
+X<-matrix(rnorm(n*K), ncol=K)
+L<-a+X%*%b
+lambda<-exp(L)
+Y<-rpois(n=n, lambda=lambda)
+X<-as.data.frame(X)
+#X<-as.matrix.data.frame(X)
+out<-glm(Y~., data=X, family=poisson)
+summary(out)
+@
+
+As expected the first two variables are highly signficant and the
+next two are not.
+
+<<bestglmPoissonFit>>=
+Xy <- data.frame(X, y=Y)
+bestglm(Xy, family=poisson)
+@
+
+Our function \code{bestglm} selects the correct model.
+
+
+
+\subsection[Gamma Regression]{Gamma Regression}
+\label{subsec:GammaRegression}
+
+To simulate a Gamma regression we first write a function \code{GetGammaParameters}
+that translates mean and standard deviation into the shape and scale parameters
+for the function \code{rgamma}.
+
+<<bestglmGammaSimulateAndFit>>=
+GetGammaParameters<-function(muz, sdz){
+    phi<-(sdz/muz)^2
+    nu<-1/phi
+    lambda<-muz/nu
+    list(shape=nu, scale=lambda)
+    }
+set.seed(321123)
+test<-rnorm(20)
+n<-500
+b<-c(0.25, 0.5, 0, 0)
+b0<-0.3
+K<-length(b)
+sdz<-1
+X<-matrix(rnorm(n*K), ncol=K)
+L<-b0+X%*%b
+muHat<-exp(L)
+gp <- GetGammaParameters(muHat, sdz)
+zsim<-rgamma(n, shape=gp$shape, scale=gp$scale)
+Xy<-data.frame(as.data.frame.matrix(X), y=zsim)
+out<-glm(y~., data=Xy, family=Gamma(link=log))
+summary(out)
+@
+
+<<bestglmGammaBest>>=
+bestglm(Xy, family=Gamma(link=log))
+@
+
+As expected, \code{bestglm} selects the correct model.
+
+\section[Simulation Experiment]{Simulation Experiment}
+\label{sec:SIM}
+
+Please see the separate vignette \citet{XuReport2009}
+for a discussion of how
+the simulation experiment reported in \citet[Table 2]{Xu2009}
+was carried out as well for more detailed results of the
+simulation results themselves.
+The purpose of the simulation experiment reported on 
+in \citet{XuMcLeod2009, Xu2009} was to compare different information
+criteria used in model selection.
+
+Similar simulation experiments were used by \cite{Shao93}
+to compare cross-valiation criteria for linear model selection.
+In the simulation experiment reported by \cite{Shao93},
+the performance of various CV methods for linear model selection
+were investigated for the linear regression,
+\begin{equation}
+y = 2 + \beta_2 x_2 + \beta_3 x_3 + \beta_4 x_4 + \beta_5 x_5 + e,
+\end{equation}
+where $e ~ \NID(0,1)$.
+A fixed sample size of $n=40$ was used and the design matrix
+used is given in \cite[Table 1]{Shao93} and the four different
+values of the $\beta$'s are shown in the table below,
+
+\begin{tabular}{crrrr}
+Experiment 	& $\beta_2$ 
+		& $\beta_3$
+		& $\beta_4$
+		& $\beta_5$\cr 
+1&	0& 0& 4& 0\cr 
+2&	0& 0& 4& 8\cr 
+3&	9& 0& 4& 8\cr 
+4&	9& 6& 4& 8
+\end{tabular}
+
+The table below summarizes the probability of correct model selection
+in the experiment reported by Shao (1993, Table 2).
+Three model selection methods are compared: LOOCV (leave-one-out CV),
+CV(d=25) or the delete-d method with d=25 and APCV which is
+a very efficient computation CV method but specialized to the
+case of linear regression.
+
+\begin{tabular}{rlll}                
+Experiment & LOOCV & CV(d=25) & APCV\cr  
+1	& 0.484 & 0.934  & 0.501\cr 
+2	& 0.641 & 0.947  & 0.651\cr 
+3	& 0.801 & 0.965  & 0.818\cr 
+4	& 0.985 & 0.948  & 0.999        
+\end{tabular}
+
+The CV(d=25) outperforms LOOCV in all cases and it also outforms APCV
+by a large margin in Experiments 1, 2 and 3 but in case 4 APCV
+is slightly better. 
+
+In the code below we show how to do our own experiments to compare
+model selection using the \BIC, \EBIC and \QBIC criteria.
+
+<<bestglmShao>>=
+`testCorrect` <-
+function(ans,NB){
+NBfit<-names(coef(ans))[-1]
+ans<-ifelse(length(NBfit)==length(NB)&(!any(is.na(match(NBfit,NB)))),1,0)
+ans
+}
+#
+NSIM<-5 #100 simulations takes about 12 sec
+data(Shao)
+set.seed(123321123)
+X<-as.matrix.data.frame(Shao)
+BETA<-list(b1=c(0,0,4,0),b2=c(0,0,4,8),b3=c(9,0,4,8),b4=c(9,6,4,8))
+NamesBeta<-list(b1=c("x4"), b2=c("x4","x5"), b3=c("x2","x4","x5"),b4=c("x2","x3","x4","x5"))
+hitsBIC<-hitsEBIC<-hitsQBIC<-numeric(4)
+startTime<-proc.time()[1]
+for (iB in 1:4){
+    b<-BETA[[iB]]
+    NB<-NamesBeta[[iB]]
+    for (iSIM in 1:NSIM){
+        y <- 2+X%*%b+rnorm(40)
+        Xy<-cbind(Shao, y)
+        hitsBIC[iB]<-hitsBIC[iB]+testCorrect(bestglm(Xy, IC="BIC")$BestModel,NB)
+        hitsEBIC[iB]<-hitsEBIC[iB]+testCorrect(bestglm(Xy, IC="BICg")$BestModel,NB)
+        hitsQBIC[iB]<-hitsQBIC[iB]+testCorrect(bestglm(Xy, IC="BICq")$BestModel,NB)
+    }
+}
+endTime<-proc.time()[1]
+totalTime<-endTime-startTime
+ans<-matrix(c(hitsBIC,hitsEBIC,hitsQBIC),byrow=TRUE,ncol=4)
+dimnames(ans)<-list(c("BIC","BICg","BICq"),1:4)
+ans<-t(ans)/NSIM
+ans
+totalTime
+
+@
+
+Increasing the number of simulations so \code{NSIM=10000}, the following result was obtained,
+\begin{Schunk}
+\begin{Soutput}
+     BIC   BICg   BICq
+1 0.8168 0.8666 0.9384
+2 0.8699 0.7741 0.9566
+3 0.9314 0.6312 0.9761
+4 0.9995 0.9998 0.9974
+\end{Soutput}
+\end{Schunk}
+
+\section[Controlling Type 1 Error Rate]{Controlling Type 1 Error Rate}
+\label{sec:ControlTypeOneError}
+
+Consider the case where there are $p$ input variables and it we wish to test
+the null hypothesis ${\cal H}_0$: the output is not related to any inputs.
+By adjusting $q$ in the \QBIC criterion, we can control the Type 1
+error rate.
+Using simulation, we can determine for any particular $n$ and $p$,
+what value of $q$ is needed to achieve a Type 1 error rate for a particular
+level, such as $\alpha=0.05$.
+
+We compare the performance of information selection criteria in the case
+of a null model with $p=25$ inputs and $n=30$ observations.
+Using 50 simulations takes about 30 seconds.
+Since there is no relation between the inputs and the output, the
+correct choice is the null model with no parameters.
+Using the BICq criterion with $q=0.05$ works better than AIC, BIC or BICg.
+We may consider the number of parameters selected as the frequency of
+Type 1 errors in an hypothesis testing framework.
+By adjusting $q$ we may adjust the Type 1 error rate to any desired level.
+This suggests a possible bootstrapping approach to the problem of variable
+selection.
+
+
+<<bestglmSIM>>=
+set.seed(123321123) 
+startTime<-proc.time()[1]
+#NSIM<-50
+NSIM<-5
+p<-25  #number of inputs
+n<-30  #number of observations
+ans<-numeric(4)
+names(ans)<-c("AIC", "BIC", "BICg", "BICq")
+for (iSim in 1:NSIM){
+    X<-matrix(rnorm(n*p), ncol=p)
+    y<-rnorm(n)
+    Xy<-as.data.frame(cbind(X,y))
+    names(Xy)<-c(paste("X",1:p,sep=""),"y")
+    bestAIC <- bestglm(Xy, IC="AIC")
+    bestBIC <- bestglm(Xy, IC="BIC")
+    bestEBIC <- bestglm(Xy, IC="BICg")
+    bestQBIC <- bestglm(Xy, IC="BICq", t=0.05)
+    ans[1] <- ans[1] +  length(coef(bestAIC$BestModel))-1
+    ans[2] <- ans[2] +  length(coef(bestBIC$BestModel))-1
+    ans[3] <- ans[3] +  length(coef(bestEBIC$BestModel))-1
+    ans[4] <- ans[4] +  length(coef(bestQBIC$BestModel))-1
+}
+endTime<-proc.time()[1]
+totalTime<-endTime-startTime
+totalTime
+ans
+@
+
+
+
+\section[Concluding Remarks]{Concluding Remarks}
+\label{sec:CONCLUSION}
+
+The subset regression problem is related to the subset autoregression problem
+that as been discussed by \citet{McLeodZhangJTSA, McLeodZhang2008} and implemented in
+the \pkg{FitAR} \proglang{R} package available on CRAN.
+The \pkg{FitAR} has been updated to include the new \QBIC criterion.
+
+\bibliography{bestglm}
+\end{document}
+
+
