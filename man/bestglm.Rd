@@ -97,7 +97,7 @@ Methods function 'print.bestglm' and 'summary.bestglm' are provided.
 
 \references{ 
 Xu, C. and McLeod, A.I. (2009). 
-Another Extended Bayesian Information Criteria for Model Selection.
+Improved Extended Bayesian Information Criterion. Submitted for publication.
 
 Chen, J. and Chen, Z. (2008). Extended Bayesian 
 Information Criteria for Model Selection with Large Model Space. Biometrika 2008 95: 759-771.
@@ -232,7 +232,7 @@ X<-matrix(rnorm(200*3), ncol=3)
 b<-c(0, 1.5, 0)
 y<-X\%*\%b + rnorm(40)
 Xy<-data.frame(as.matrix.data.frame(X), y=y)
-bestglm(Xy,IncludeInterceptQ=FALSE) 
+bestglm(Xy, intercept=FALSE) 
 
 }
 

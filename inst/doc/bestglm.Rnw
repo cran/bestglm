@@ -36,8 +36,8 @@
 
 
 \author{A. I. McLeod\\University of Western Ontario \And
-        Changiang Xu\\University of Western Ontario}
-\Plainauthor{A. I. McLeod, Changjiang Xu}
+        C. Xu\\University of Western Ontario}
+\Plainauthor{A. I. McLeod, C. Xu}
 
 \title{\pkg{bestglm}: Best Subset GLM}
 \Plaintitle{bestglm: Best Subset GLM}
@@ -46,14 +46,14 @@
 \Plainkeywords{best subset GLM, AIC, BIC, extended BIC, cross-validation}
 
 \Abstract{
-Functions are provided for selecting the best subset of inputs for
+The function \code{bestglm} selects the best subset of inputs for
 the \GLM~ family.
-The criterion available include a variety of information criteria as well as cross-validation.
+The selection methods available include a variety of information criteria as well as cross-validation.
 Several examples are provided to show that this approach is sometimes
 more accurate than using the built-in R function \code{step}.
 In the Gaussian case the leaps-and-bounds algorithm in \pkg{leaps} is used
 provided that there are no factor variables with more than two levels.
-In the non-Gaussian \GLM case or when there are factor variables present
+In the non-Gaussian \GLM\ case or when there are factor variables present
 with three or more levels, a simple exhaustive enumeration approach is used.
 This vignette also explains how the applications given in our
 article \citet{Xu2009} may easily be reproduced.
@@ -123,14 +123,14 @@ The idea of data-dredging is somewhat similar to the concern about over-training
 with artifical neural nets.
 In both cases, there does not seem to be any rigorous justification of choosing
 a suboptimal solution.
-In the case of \GLM and linear models our package provides a variety
+In the case of \GLM\ and linear models our package provides a variety
 of criterion for choosing a parsimonious subset or collection of possible subsets.
  
 
 In the case of linear regression,
 \citet{Miller2002} provides a monograph length treatment of this problem while
 \citet[Ch. 3]{HTF2009} discuss the subset approach along with other recently developed
-methods such as \LARS~ and \LASSO.
+methods such as \LARS\ and \LASSO.
 Consider the case of linear regression with 
 $n$ observations, $(x_{i,1},\ldots,x_{i,p}, y_i), i=1,\ldots,n$
 we may write the regression,
@@ -177,7 +177,7 @@ complexity apply.
 No doubt there is scope for the development of more efficient branch-and-bound algorithms
 for the problem of subset selection in \GLM\ models.
 See \citet{Brusco2005} for a recent monograph of the statistical applications of the branch-and-bound algorithm.
-We use the lexicographically method suggested by \citet{Morgan72} for the all subsets regression
+We use the lexicographical method suggested by \citet{Morgan72} for the all subsets regression
 problem to enumerate the loglikelihoods for all possible \GLM\ model.
 Assuming there are $p$ inputs, there are then $2^p$ possible subsets which may be 
 enumerated by taking $i=0,\ldots,2^p-1$ and using the base-2 representation of
@@ -238,7 +238,7 @@ increases.
 
 \code{bestglm} uses the simple exhaustive search algorithm \citep{Morgan72} for \GLM\ 
 and the \code{regsubsets} function in the \pkg{leaps} package
-to find the GLM models with smallest sum of squares or deviances for size $k=0,1,\ldots,p$.
+to find the \GLM\ models with smallest sum of squares or deviances for size $k=0,1,\ldots,p$.
 Size $k=0$ corresponds to intercept only.
 The exhaustive search requires more computer time but this is usually not
 an issue when $p<=10$.
@@ -266,8 +266,7 @@ $p$ columns the design matrix and in the last column the response.
 For binomial GLM, the last two columns may represent counts $S$ and $F$
 as in the usual \code{glm} function when the {\tt family=binomial}
 option is used.
-For compatibility with the \pkg{leaps} package, \code{Xy} may also
-be an \code{lm} or \code{biglm} object.
+
 
 When \code{family} is set to \code{gaussian}, the function
 \code{regsubsets} in \pkg{leaps} is used provided that all inputs are
@@ -341,7 +340,7 @@ Cross-validation methods are not available in the regression through the origin 
 The argument \code{nvmax} may be used to limit the number of possible explanatory
 variables that are allowed to be included.
 This may be useful when $p$ is quite large.
-Normally the information criteria will eliminate unnecessary variables automatically and so
+Normally the information criterion will eliminate unnecessary variables automatically and so
 when the default setting is used for \code{nvmax} all models up to an including the full
 model with $p$ inputs are considered.
 
@@ -362,7 +361,7 @@ is not implemented in \pkg{bestglm}.
 
 Information criteria or cross-validation is used to select the best model
 out of these $p+1$ model cases, $k=0,1,\ldots,p$. 
-The information criterion include the usual AIC and BIC as well as two types of 
+The information criteria include the usual \AIC\ and \BIC\ as well as two types of 
 extended \BIC\  \citep{ChenChen2008, Xu2009}.
 These information criteria are discussed in the Section \ref{sec:IC}.
 
@@ -370,7 +369,7 @@ When the information criterion approach is used, it is possible to select
 the best $T$ models out of all possible models by setting the optional
 argument \code{TopModels = T}.
 
-The information criterion we consider are all based on a penalized form of the deviance
+All the information criteria we consider are based on a penalized form of the deviance
 or minus twice the log-likelihood.
 In the multiple linear regression the deviance ${\cal D} = - 2\log{\cal L}$, where
 $\cal L$ is the maximized log-likelihood, $\log {\cal L} = -(n/2) \log {\cal S}/n$,
@@ -382,8 +381,8 @@ where $\cal S$ is the residual sum of squares.
 \citet{Akaike1974} showed that $\AIC = {\cal D} + 2 k$, where $k$ is the number of parameters, provides
 an estimate of the entropy.
 The model with the smallest \AIC\  is preferred.
-Many other criterion which are essentially equivalent to the \AIC\  have also been suggested.
-Several other asymptotically equivalent but more specialized criterion were suggested
+Many other criteria which are essentially equivalent to the \AIC\  have also been suggested.
+Several other asymptotically equivalent but more specialized criteria were suggested
 In the context of autoregressive models, \citet{Akaike1970} suggested the final prediction
 error criterion, $\FPE = \hat \sigma^2_k (1 + 2 k/n)$, where $\hat \sigma^2_k$ is the
 estimated residual variance in a model with $k$ parameters.
@@ -392,8 +391,8 @@ $C_k = S_k/{\hat \sigma_2} + 2 k - n$, where $S_k$ is the residual sum-of-square
 a model with $k$ inputs and $\hat \sigma_2$ is the residual variance using all $p$ inputs.
 \cite{Nishii1984} showed that minimizing $C_k$ or \FPE\  is equivalent to minimizing
 the AIC.
-In practice, with small $n$, these criterion often select the same model.
-From the results of \citep{Shibata1981}, the AIC is asympotically efficient but not consistent.
+In practice, with small $n$, these criteria often select the same model.
+From the results of \citep{Shibata1981}, the \AIC\ is asympotically efficient but not consistent.
 
 \subsubsection[Best AIC Model for Prostate Data]{Best AIC Model for Prostate Data}
 \label{subsubsec:aic}
@@ -474,7 +473,7 @@ BIC_q = {\cal D} + k \log(n) - 2 k \log q/(1-q).
 When $q=1/2$, the BICq is equivalent to the BIC
 while $q=0$ and $q=1$ correspond to selecting the models with $k=p$ and $k=0$ respectively.
 Moreover, $q$ can be chosen 
-to give results equivalent to the BICg for any $\gamma$ or the AIC \cite{Xu2009}.
+to give results equivalent to the BICg for any $\gamma$ or the \AIC\ \cite{Xu2009}.
 When other information criteria are used with \code{bestglm}, the range of the $q$ parameter
 that will produce the same result is shown.
 For example in \ref{subsubsec:bicg}, we see that $q \in (0.0176493852011195, 0.512566675362627)$ produces an equivalent result.
@@ -487,95 +486,7 @@ probability $\alpha$, $0<\alpha<1$.
 This parameter may be set by the optional argument \code{qLevel} $ = \alpha$.
 The default setting is with $\alpha = 0.99$.
 
-\subsubsection[Theorem for q-Interval Calculation]{Theorem for q-Interval Calculation}
-\label{subsubsec:TheoremQ}
-
-Consider the generalized information criterion \citep{Akaike79},
-\begin{equation}\label{Clmd}
-\textsc{c}_{\lambda}(k)=-2 \log L(\hat\theta_k) + \lambda k,
-\end{equation}
-where $-\infty < \lambda <\infty$ is an adaptive penalty.
-The criterion is called \AICz-type if $\lambda$ is a constant
-and \BICz-type if $\lambda$ depends on $n$.
-The consistency property of \BIC is shared by any \BICz-type criterion that has a penalty of the form $\lambda k$
-satisfying $\lambda \rightarrow\infty$ and $\lambda/n \rightarrow 0$ as $n\rightarrow \infty$~\citep{Shao97, Yang05}.
-For each $q$, \QBIC is the same as \Clmd with $\lambda=\log n-2\log q/(1-q)$.
-Conversely, for each $\lambda$, there exists a
-$q = ( 1 + n^{-0.5} e^{0.5\lambda} )^{-1}$
-such that \QBIC is the same as \Clmdz.
-Hence \QBIC is equivalent to \Clmdz.
-
-As $\lambda$ varies between $-\infty$ and $+\infty$, $\argmin_k \textsc{c}_{\lambda}(k)$ varies between
-$0$ and $K$.
-Denote these values by $k_0 < \ldots < k_{\cal K}$, where ${\cal K} \le K$ is the number
-of different model sizes that can be selected, $k_0 = 0$ and $k_{\cal K} = K$.
-Each of these possible models sizes, $k_i, i=0,\ldots, \cal K$ corresponds to a range
-$\lambda$ values, $d_{1,k_i} < \lambda < d_{2, k_i}$.
-The following Lemma gives explicit formula for determining these ranges.
-For simplicity, let ${\cal L}_k = \log L(\hat\theta_k)$.
-
-\begin{lemma}\label{LemmaClmd}
-Set
-$$
-\begin{array}{rl}
-d_{1,k} &= \min_{j<k} 2({\cal L}_j - {\cal L}_k)/(j-k), k=1,\ldots, K;\\
-d_{2,k} &= \max_{j>k} 2({\cal L}_j - {\cal L}_k)/(j-k), k=0,\ldots,K-1;
-\end{array}
-$$
-$d_{2,K}=-\infty$
-and
-$d_{1,0}=\infty$.
-The model of size $k$ is selected using the criterion \Clmd
-if $d_{2,k} < \lambda < d_{1,k}$.
-If $\lambda = d_{i,k}$, there is a tie between adjacent model sizes.
-\end{lemma}
-
-By setting $\lambda=\log n-2\log q/(1-q)$,
-the following theorem can be directly derived from Lemma~\ref{LemmaClmd}.
-
-\begin{theorem}\label{Theoremq}
-The \QBIC\ can select the model size $k$ if and only if $q_{1,k} \le q \le q_{2,k}$,
-where $q_{i,k} = ( 1 + n^{-0.5} e^{0.5 d_{i,k}} )^{-1}$,
-$k = 0, \dots, K$.
-When $q_{1,k} > q_{2,k}$ the model of size $k$ cannot be selected.
-\end{theorem}
-
-From Theorem~\ref{Theoremq}, the best choice of $q$ is not unique and corresponds to an interval.
-Assuming the true model is of size $k_0$ then
-the best choice is $q\in (q_{1,k_0}, q_{2,k_0})$.
-For $k>k_0$, $2({\cal L}_k - {\cal L}_{k-1}) \sim \chi^2_1$ asymptotically
-and hence $\pr(d_{1,k} \le \xi) \ge \alpha$,
-where $\xi$ is the $\alpha$ quantile of $\chi_1^2$,
-since $d_{1,k} \le 2({\cal L}_k - {\cal L}_{k-1})$.
-Conversely, if $d_{1,k}>\xi$
-then $k>k_0$ would be not true with confidence probability $\alpha$.
-Let $d_{1,k_1}$ be the smallest $d_{1,k}$ subject to $d_{1,k}>\xi$.
-The corresponding value of $q$, $q_{1,k_1}$, is obtained by Theorem~\ref{Theoremq}.
-%$q_{1,k_1} = ( 1 + n^{-0.5} e^{0.5d_{1,k_1}} )^{-1}$.
-The $q_{1,k_1}$ is a lower bound for $q$
-because it corresponds to $d_{1,k_1}>\xi$
-and so $k_1\le k_0$ with confidence probability greater than or equal to $\alpha$.
-
-Notice that $2({\cal L}_j - {\cal L}_k)  \sim \chi^2_{j-k}$ asymptotically for $j > k \geq k_0$,
-and
-$2({\cal L}_j - {\cal L}_k) \sim \chi^2_{j-k}(\delta)$ asymptotically for $j>k_0>k$,
-where $\delta>0$ is a non-centrality parameter.
-Hence as $k$ decreases from $K$ to $k_0$,
-the difference, $d_{1,k}-d_{2,k}$, has a jump increase at $k_0$.
-Let $d_{2,k_2}$ be the value $d_{2,k}$ for which $d_{1,k}-d_{2,k}$ is largest
-subject to $d_{1,k}\le\xi$,
-and denote the corresponding value of $q$ by $q_{2,k_2}$.
-Since $d_{2,k_2}<d_{1,k_2}\le \xi <d_{1,k_1}$,
-$q_{1,k_1}<q_{2,k_2}$,
-$(q_{1,k_1}, q_{2,k_2})$ provides an interval for choosing $q$,
-which covers $(q_{1,k_1}, q_{2,k_1})$ and $(q_{1,k_2}, q_{2,k_2})$.
-When $\xi\le\delta$,
-$(q_{1,k_0}, q_{2,k_0}) \subseteq (q_{1,k_1}, q_{2,k_2})$
-and $q_{2,k_2}=q_{2,k_0}$ asymptotically
-with confidence probability greater than or equal to $\alpha$.
-Often we take $\alpha=0.99$ and then $\xi = 6.63$.
-
-\subsubsection[Numerical Illustration for Theorem]{Numerical Illustration for Theorem}
+\subsubsection[Numerical Illustration for q-Interval Computation]{Numerical Illustration $q$-Interval Computation}
 \label{subsubsec:NumericalIllustration}
 
 In \citet[Table 1]{Xu2009} we provided a brief illustrations of the computation
@@ -736,7 +647,7 @@ However, even in this case, the results do not seem to be as good as with
 the delete-d method using eqn. \ref{eqFord}.
 
 \citet{HTF2009} suggest using the ``one-standard deviation'' rule with K-fold cross-validation.
-\cite{Breiman1984} originally suggesting rule for selecting the best prunned CART.
+\cite{Breiman1984} originally suggested this rule for selecting the best prunned CART.
 
 In this approach the validation sum-of-squares is computed for each of
 the $K$ validation samples, 
@@ -837,13 +748,17 @@ As with regular $K$-fold CV, this method has quite variable in small samples.
 As recommended by \citet{Davison97}, we simply select the model with the lowest CV score.
 
 Running the program 3 times produces 3 different results.
+
 <<bestglmCVDH>>=
 set.seed(2377723)
 bestglm(Xy, IC="CV", CVArgs=list(Method="DH", K=10, REP=1))
 bestglm(Xy, IC="CV", CVArgs=list(Method="DH", K=10, REP=1)) 
 bestglm(Xy, IC="CV", CVArgs=list(Method="DH", K=10, REP=1))  
 @
-After 1000 simulations, the results are summarized below.
+
+The results obtained after 1000 simulations are summarized in the
+table below.
+
 \begin{tabular}{lllllllll}
 Number of inputs selected &  1 &  2 &  3  & 4 &  5 &  6 &  7  & 8 \\
 Frequency in 1000 simulations & 0 &  0 & 23  &61  &64 &289 &448 &115
@@ -942,7 +857,7 @@ and
 out$qTable
 @
 
-\subsection{South Afrian Heart Disease}
+\subsection{South African Heart Disease}
 \label{subsec:SAheart}
 
 The response variable, \code{chd}, indicates the presence or absence
@@ -1384,7 +1299,8 @@ the simulation experiment reported in \citet[Table 2]{Xu2009}
 was carried out as well for more detailed results of the
 simulation results themselves.
 The purpose of the simulation experiment reported on 
-in \citet{XuMcLeod2009, Xu2009} was to compare different information
+in \citet[Table 2]{Xu2009} and described in more detail in the
+accompanying vignette \citet{XuReport2009} was to compare different information
 criteria used in model selection.
 
 Similar simulation experiments were used by \cite{Shao93}
@@ -1431,7 +1347,7 @@ by a large margin in Experiments 1, 2 and 3 but in case 4 APCV
 is slightly better. 
 
 In the code below we show how to do our own experiments to compare
-model selection using the \BIC, \EBIC and \QBIC criteria.
+model selection using the \BIC, \EBIC\ and \QBIC\ criteria.
 
 <<bestglmShao>>=
 `testCorrect` <-
@@ -1486,7 +1402,7 @@ Increasing the number of simulations so \code{NSIM=10000}, the following result 
 
 Consider the case where there are $p$ input variables and it we wish to test
 the null hypothesis ${\cal H}_0$: the output is not related to any inputs.
-By adjusting $q$ in the \QBIC criterion, we can control the Type 1
+By adjusting $q$ in the \QBIC\ criterion, we can control the Type 1
 error rate.
 Using simulation, we can determine for any particular $n$ and $p$,
 what value of $q$ is needed to achieve a Type 1 error rate for a particular
@@ -1542,7 +1458,7 @@ ans
 The subset regression problem is related to the subset autoregression problem
 that as been discussed by \citet{McLeodZhangJTSA, McLeodZhang2008} and implemented in
 the \pkg{FitAR} \proglang{R} package available on CRAN.
-The \pkg{FitAR} has been updated to include the new \QBIC criterion.
+The \pkg{FitAR} has been updated to include the new \QBIC\ criterion.
 
 \bibliography{bestglm}
 \end{document}

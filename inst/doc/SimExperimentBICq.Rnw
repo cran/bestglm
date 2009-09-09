@@ -20,9 +20,9 @@
 %\usepackage{Sweave}
 %\usepackage{natbib}
 
-\author{Changiang Xu\\University of Western Ontario \And
+\author{C. Xu\\University of Western Ontario \And
         A. I. McLeod\\University of Western Ontario}
-\Plainauthor{Changjiang Xu, A. I. McLeod}
+\Plainauthor{C. Xu, A. I. McLeod}
 
 \title{Performance of the BIC$_q$: Simulation Experiment }
 \Plaintitle{Performance of the BICq: Simulation Experiment}
@@ -35,6 +35,11 @@ A more detailed presentation is given for the
 simulation experiment reported in \citet[Table 2]{Xu2009} comparing
 the performance of the \QBIC\ with the \AIC, \BIC\  and \EBIC\ 
 for linear model selection.
+The scripts displayed in this document may be manually extracted
+using an editor from the file \code{SimExperimentBICq.Rnw} which is
+located in the subdirectory \code{inst/doc}.
+Alternatively if the R package \pkg{Sweave} is installed the command:
+\code{R CMD Stangle SimExperimentBICq.Rnw} may be used.
 }
 
 \Address{

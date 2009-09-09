@@ -12,8 +12,8 @@ Additionally, various CV algorithms are also provided.
 \tabular{ll}{
 Package: \tab bestglm\cr
 Type: \tab Package\cr
-Version: \tab 0.10\cr
-Date: \tab 2009-08-26\cr
+Version: \tab 0.13\cr
+Date: \tab 2009-09-09\cr
 License: \tab GLP 2.0 or greater\cr
 LazyLoad: \tab yes\cr
 }
@@ -21,14 +21,18 @@ LazyLoad: \tab yes\cr
 bestglm is the main function. All other functions are utility functions and are not normally invoked.
 
 Many examples are provided in the vignettes accompanying this package.
-The R package \code{xtable} is needed for the vignette in SimExperimentBICq.Rnw.
+The vignettes are produced using the R package \code{Sweave} and so R scripts
+can easily be extracted.
+
+The R package \code{xtable} is needed for the vignette in \code{SimExperimentBICq.Rnw}.
 }
 
 \author{A.I. McLeod and Changjiang Xu}
 
 \references{
 Xu, C. and McLeod, A.I. (2009). 
-Another Extended Bayesian Information Criterion.
+Improved Extended Bayesian Information Criterion. Submitted for publication.
+
 }
 
 \keyword{ package }
