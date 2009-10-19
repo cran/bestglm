@@ -55,7 +55,7 @@ Alternatively if the R package \pkg{Sweave} is installed the command:
 \begin{document}
 
 \SweaveOpts{engine=R,eps=FALSE}
-%\VignetteIndexEntry{bestglm: Best subset GLM}
+%\VignetteIndexEntry{Performance of the BICq: Simulation Experiment}
 %\VignetteDepends{leaps}
 %\VignetteKeywords{extended BIC}
 %\VignettePackage{bestglm}
