@@ -21,7 +21,7 @@ bestglm(Xy, family = gaussian, IC = "BIC", t = "default", CVArgs = "default", qL
   \item{IC}{ Information criteria to use: "AIC", "BIC", "BICg", "BICq", "LOOCV", "CV".}
   \item{t}{ adjustable parameter for BICg, BICq or CV. For BICg, default is g=t=1. 
   For BICq, default is q=t=0.25.  For CV, default the delete-d method with d=ceil(n(1-1/(log n - 1)))
-  and REP=t=100. The default value of the parameter may be changed by changing t.}
+  and REP=t=1000. The default value of the parameter may be changed by changing t.}
   \item{CVArgs}{ Used when IC is set to `CV`.  The default is use the delete-d algorithm
   with d=ceil(n(1-1/(log n - 1))) and t=100 repetitions. Note that the number of repetitions
   can be changed using t. 
@@ -179,22 +179,12 @@ bestglm(znuclear, IC="BICg", t=0.5)
 #Example 5. bestglm, CV
 data(zprostate)
 train<-(zprostate[zprostate[,10],])[,-10]
-#Default method delete-d with 100 replications - takes about 5 seconds
-bestglm(train, IC="CV") 
-#Using delete-d with 1000 replications takes about 50 seconds but
-# the result has converged -- best regression is with lcavol and lweight.
-#Uncomment to run next line:
-#bestglm(train, IC="CV", t=1000) 
-#Other CV methods:
-set.seed(23301)
+#the default CV method takes too long, set t=10 to do only
+# 10 replications instead of the recommended 1000
+bestglm(train, IC="CV", t=10)
 bestglm(train, IC="CV", CVArgs=list(Method="HTF", K=10, REP=1))
-#result is different because of random sampling to choose the folds
-bestglm(train, IC="CV", CVArgs=list(Method="HTF", K=10, REP=1))
-#less variability when we increase REP to 100 but takes more time
-#uncomment to run - takes about 50 seconds
-#bestglm(train, IC="CV", CVArgs=list(Method="HTF", K=10, REP=100))
-#Compare with DH Algorithm
-bestglm(train, IC="CV", CVArgs=list(Method="DH", K=10, REP=10))
+#Compare with DH Algorithm. Normally set REP=100 is recommended.
+bestglm(train, IC="CV", CVArgs=list(Method="DH", K=10, REP=1))
 #Compare LOOCV
 bestglm(train, IC="LOOCV")
 #

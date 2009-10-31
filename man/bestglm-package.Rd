@@ -12,8 +12,8 @@ Additionally, various CV algorithms are also provided.
 \tabular{ll}{
 Package: \tab bestglm\cr
 Type: \tab Package\cr
-Version: \tab 0.14\cr
-Date: \tab 2009-10-19\cr
+Version: \tab 0.20\cr
+Date: \tab 2009-10-31\cr
 License: \tab GLP 2.0 or greater\cr
 LazyLoad: \tab yes\cr
 }
@@ -58,19 +58,14 @@ bestglm(train, IC="BICq")
 bestglm(train, IC="BICq", t=0.5)
 #Remark: set seed since CV depends on it
 set.seed(123321123)
-#Best subset using 10-fold CV. Default when IC="CV"
-bestglm(train, IC="CV")
-#Best subset using 5-fold adjusted CV (Davison & Hartigan algorithm)
-bestglm(train, IC="CV", CVArgs=list(Method="DH", K=5, REP=1))
-#Best subset using delete-d CV, with d=5 and 100 replications
-bestglm(train, IC="CV", CVArgs=list(Method="d", K=5, REP=100))
+bestglm(train, IC="CV", t=10)
+#using HTF method
+bestglm(train, IC="CV", CVArgs=list(Method="HTF", K=10, REP=1))
 #Best subset, logistic regression
 data(SAheart)
 bestglm(SAheart, IC="BIC", family=binomial)
 #Best subset, factor variables with more than 2 levels
 data(AirQuality)
-#full regression
-bestglm(AirQuality, IC="BICq", t=1)
 #subset
 bestglm(AirQuality, IC="BICq")
 

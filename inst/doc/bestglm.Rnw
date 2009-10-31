@@ -533,28 +533,21 @@ out <- bestglm(Xy, IC="BICq")
 \section[Cross-Validation]{Cross-Validation}
 \label{sec:CV}
 
-Cross-validation approaches to model selection have a long history and have
-been widely used.
-
-Cross-validation for model selection is also available in \code{bestglm} function.
+Cross-validation approaches to model selection are widely used and
+are also available in the \code{bestglm} function
 The old standard, leave-one-out cross-validation (\LOOCV) is implemented along
 with the more modern methods: K-fold and delete-d cross-valiation (CV).
-Our experience suggests that the delete-d CV performs best with $d$ chosen
-using eqn. (\ref{eqFord}). 
 
 All CV methods work by first narrowing the field to the best models of
 size $k$ for $k=0,1,\ldots,p$ and then comparing each of these models
 $p+1$ possible models using cross-validation to select the best one.
 The best model of size $k$ is chosen as the one with the 
-smallest deviance.  
-This means for GLM the model with the largest likelihood and
-in the Gaussian case this is the smallest sum-of-squares.
+smallest deviance.
 
 \subsection{Delete-d Cross-Validation}
 \label{subsec:ddCV}
 
-Probably the best CV method for use with model selection in linear regression
-is the delete-d method suggested by \citet{Shao93}.
+The delete-d method was suggested by \citet{Shao93}.
 In the random sampling version of this algorithm, random samples of size $d$ are used
 as the validation set.
 Many validation sets are generated in this way and the complementary part of the data
@@ -571,15 +564,19 @@ in $K$-fold CV.
 Letting $\lambda_n = \log n$ as suggested \citet[page 236, 4th line of last paragraph]{Shao97}
 and using \citet[eqn. 4.5]{Shao97}, we obtain 
 \begin{equation}
-d=n (1-(\log n - 1)^{-1}),
+d^{\star} =n (1-(\log n - 1)^{-1}),
 \label{eqFord}
 \end{equation}
 where $n$ is the number of observations.
-The table below compares the validation sample size using this recommended value with
-$k$-fold CV when $k=5$ or $k=10$.
 
+
+\begin{center}
+\bf{Comparison of size of validation samples for various sample sizes $n$
+using delete-$d$ and $K$-fold cross-validation.}
+
+\end{center}
 \begin{tabular}{llll}
-   $n$  &  $d$   &  $K=10$   &  $K=5$   \cr
+   $n$  &  $d^{\star}$   &  $K=10$   &  $K=5$   \cr
    50 &  33  &  5      &  10    \cr
   100 &  73  &  10     &  20   	\cr
   200 & 154  &  20     &  40   	\cr
@@ -591,31 +588,31 @@ $k$-fold CV when $k=5$ or $k=10$.
 \subsubsection[Best Delete-d Model for Prostate Data]{Best Delete-d Model for Prostate Data}
 \label{subsubsec:loocv}
 
+The default cross-validation method is delete-d with 1000 replications,
+as with \code{bestglm(Xy, IC="CV"}.
+This takes about one minute to run, so in this vignette we
+set the optional tuning parameter \code{t=10} so only 10 replications are done.
+
+
 The default for \code{IC="CV"} is delete-d with $d$ as in eqn. (\ref{eqFord})
-and with 100 replications.  With only 100 replications, the answer may be depend
-on the initial seed.
+but in the example below, we set the optional tuning parameter
+\code{t=10}
 
 <<bestglmDeleted>>=
 set.seed(123321123)
-bestglm(Xy, IC="CV")
+bestglm(Xy, IC="CV", t=10)
 @
 
-The number of replications can be from 100 to 1000 by using \code{t=1000}
-in the list arguments. This required about 50 seconds and produced the same
-result; suggesting convergence has been obtained. 
-Convergence was verified by repeating the simulation 100 times and noting
-that the same result was obtained each time.
+In practice though at least 1000 replications are usually needed to 
+obtain convergence.
 
 
 \subsection{K-fold}
 \label{subsec:kfold}
 
 \cite{HTF2009}  discuss $K$-fold CV.
-Instead of removing only one data point, the data are divided into folds of approximately
-equal size.
-These folds form a partition of the the observations ${1,\ldots,n}$,
-where $n$ is the total number of observations.
-We will denote the set of elements in the $k$th partition by $\Pi_k$.
+With this method, the data are divided, randomly, into $K$ folds of
+approximately equal size. 
 
 For the prostate training data with $n=67$ and using $K=10$ folds,
 
@@ -633,23 +630,24 @@ and the values of $N_k, k=1,\ldots,10$ are:
 tabulate(ind)
 @
 
-It is important to note that the choice of folds depends on the random
-number generator and so the result may change unless a fixed seed is used.
-Another possibility is to do more replications and average the results.
+These folds form a partition of the the observations ${1,\ldots,n}$.
+We will denote the set of elements in the $k$th partition by $\Pi_k$.
 
-Using folds in this way gives a balanced replication as opposed to the purely
-random resampling in the delete-d method.
-However, as we will, using one replication, as is often done, does not produce
-reliable results in the sense that the result will depend on the initial state
-of the random number generator!
-This can be simply remedied by replicating K-fold cross validation many times.
-However, even in this case, the results do not seem to be as good as with
-the delete-d method using eqn. \ref{eqFord}.
+One fold is selected as the validation sample and the reamining
+to into the training sample.
+The performance is calibrated on the validation sample.
+This is repeated for each fold.
+The average performance over the $K$ folds is determined.
 
-\citet{HTF2009} suggest using the ``one-standard deviation'' rule with K-fold cross-validation.
-\cite{Breiman1984} originally suggested this rule for selecting the best prunned CART.
+\citet{HTF2009} suggest using the {\it one-standard-deviation rule} with K-fold cross-validation.
+This makes the model selection more stable than simply selecting the model model
+with the best overall average performance.
+This rule was original defined in
+\cite[p. 79, Definition 3.19)]{Breiman1984} 
+and used for selecting the best prunned CART.
 
-In this approach the validation sum-of-squares is computed for each of
+For subset selection, this approach is implemented as follows.
+The validation sum-of-squares is computed for each of
 the $K$ validation samples, 
 \begin{equation}
 S_k = \sum\lim_{i \in \Pi_k} ( \hat e^{(-k)_i} )^2,
@@ -667,16 +665,18 @@ In each validation sample we may obtain the estimate of the cross-validation
 mean-square error,
 $\CV_k =  S_k/N_k$, where
 $N_k$ is the number of observations in the $k$th validation sample.
-Let $s$ be the sample variance of $\CV_1,\ldots,\CV_K$.
-Then an interval estimate for CV, using the one-standard-devation rule, is $\CV \pm 0.5 s$.
-
+Let $s^2$ be the sample variance of $\CV_1,\ldots,\CV_K$.
+So an estimate of the sample variance of $\CV$, the mean of
+ $\CV_1,\ldots,\CV_K$ is $s^2/K$.
+Then an interval estimate for CV, using the one-standard-devation rule, 
+is $\CV \pm s/\sqrt{K}$.
 When applied to model selection, this suggests that instead of selecting the model
 with the smallest CV, the most parsimonious adequate model will correspond to the
-model with the largest CV which is still inside this interval.
+model with the best CV score which is still inside this interval.
+Using this rule greatly improves the stability of k-fold CV.
 
 This rule is implemented when the \code{HTF} CV method is used in our \code{bestglm}
 function.
-By a careful choice of seed, we are able to reproduce the result from \citet{HTF2009},
 
 <<bestglmCVHTF>>=
 set.seed(2377723)
@@ -689,31 +689,32 @@ graphs shown in \citep[page 62, Figure 3.3]{HTF2009} that illustrates
 how the one-standard deviation rule works for model selection.
 
 <<plotCVHTF,eval=FALSE>>=
-CV<-out$Subsets[,"CV"]
-sdCV<-out$Subsets[,"sdCV"]
-CVLo<-CV-0.5*sdCV
-CVHi<-CV+0.5*sdCV
-ymax<-max(CVHi)
-ymin<-min(CVLo)
-k<-0:(length(CV)-1)
-plot(k, CV, xlab="Subset Size", ylab="CV Error", ylim=c(ymin,ymax), type="n", yaxt="n")
-points(k, CV, cex=2, col="red", pch=16)
-lines(k, CV, col="red", lwd=2)
+cverrs <- out$Subsets[,"CV"]
+sdCV<- out$Subsets[,"sdCV"]
+CVLo <- cverrs - sdCV
+CVHi<- cverrs + sdCV
+ymax <- max(CVHi)
+ymin <- min(CVLo)
+k <- 0:(length(cverrs)-1)
+plot(k, cverrs, xlab="Subset Size", ylab="CV Error", ylim=c(ymin,ymax), type="n", yaxt="n")
+points(k, cverrs, cex=2, col="red", pch=16)
+lines(k, cverrs, col="red", lwd=2)
 axis(2, yaxp=c(0.6,1.8,6))
 segments(k, CVLo, k, CVHi, col="blue", lwd=2)
-eps<-0.15
+eps <- 0.15
 segments(k-eps, CVLo, k+eps, CVLo, col="blue", lwd=2)
 segments(k-eps, CVHi, k+eps, CVHi, col="blue", lwd=2)
 #cf. oneSDRule
-indMin <- which.min(CV)
-fmin<-sdCV[indMin]
-cutOff <- fmin/2 + CV[indMin]
-indRegion <- cutOff > CV
-Offset <- sum(cumprod(as.numeric(!indRegion)))
-TheMins <- (cutOff-CV)[indRegion]
-indBest<-Offset + (1:length(TheMins))[(min(TheMins)==TheMins)]
-abline(h=cutOff, lty=2)
+indBest <- oneSdRule(out$Subsets[,c("CV", "sdCV")])
 abline(v=indBest-1, lty=2)
+indMin <- which.min(cverrs)
+fmin <- sdCV[indMin]
+cutOff <- fmin + cverrs[indMin]
+abline(h=cutOff, lty=2)
+indMin <- which.min(cverrs)
+fmin <- sdCV[indMin]
+cutOff <- fmin + cverrs[indMin]
+min(which(cverrs < cutOff))
 @
 
 \begin{figure}[h!]
@@ -725,27 +726,12 @@ abline(v=indBest-1, lty=2)
 \end{center}
 \end{figure}
 
-However the results are quite variable using this rule.
-The result of 1000 simulations using this rule are shown below.
-It is seen that almost half the time, a model with only one
-input, \code{lcavol}, is selected.
-The model chosen by \cite{HTF2009} is only selected about 14\%
-of the time.
-
-\begin{tabular}{lllllllll}
-Number of inputs selected &  1 &  2 &  3  & 4 &  5 &  6 &  7  & 8 \\
-Frequency in 1000 simulations &499& 142&  65&  43& 120&  29&  20&  82 
-\end{tabular}
-
-Using \code{REP=100}, we the selected model has only \code{lcavol} selected.
-This was repeated 100 times and the selection remained the same.
 
 \subsection{Bias Correction}
 \label{subsec:DHCV}
 
-\citet[Algorithm 6.5, p.295]{Davison97} suggested an adjusted CV statistic which corrects for bias.
-As with regular $K$-fold CV, this method has quite variable in small samples.
-As recommended by \citet{Davison97}, we simply select the model with the lowest CV score.
+\citet[Algorithm 6.5, p.295]{Davison97} suggested an adjusted CV statistic which corrects for bias
+but this method has quite variable in small samples.
 
 Running the program 3 times produces 3 different results.
 
@@ -768,6 +754,10 @@ When \code{REP} is increased to 100, the result converges the model with 7 input
 It takes about 66 seconds.
 Using \code{REP=100} many times, it was found
 that models with 7 inputs were selected 95% of the time and models with 6 inputs were selected.
+
+We conclude that if either this method \citep[Algorithm 6.5, p.295]{Davison97} or the method of \citet{HTF2009} 
+is used, many replications are need to obtain a stable result.
+In view of this, the delete-d of cross-validation is recommended.
 
 \subsection[LOOCV]{Leave-one-out Cross-Validation}
 \label{subsec:loocv}
@@ -1025,12 +1015,6 @@ data(Fires)
 bestglm(Fires, IC="AIC")
 @
 
-The regression with all variables included,
-
-<<bestglmFiresAll>>=
-bestglm(Fires, IC="BICq", t=1)
-@
-
 
 
 \section[Simulated Data]{Simulated Data}
@@ -1084,52 +1068,6 @@ out<-glm(Y~., data=X, family=binomial)
 summary(out)
 @
 
-As might be expected, none of the parameters are significantly different from
-their expectations.
-
-Next we fit using \code{bestglm} to find the best model.
-For comparison with the 'leaps' algorithm we record the time.
-
-<<bestglmLogisticTimingA>>=
-Xy<-data.frame(X, y=Y)
-startTimeA <- proc.time()[1] #user
-outA<-bestglm(Xy, family=binomial)
-endTimeA <- proc.time()[1] #user
-TotalTimeA<-endTimeA-startTimeA
-startTimeB <- proc.time()[1] #user
-@
-
-We see that the correct model was selected,
-
-<<bestglmLogisticOutputA>>=
-outA
-@
-
-To compare, we fit using \code{family=gaussian},
-
-<<bestglmLogisticTimingB>>=
-startTimeB <- proc.time()[1] #user
-outB<-bestglm(Xy)
-endTimeB <- proc.time()[1] #user
-TotalTimeB<-endTimeB-startTimeB
-@
-
-As might be expected, in this case, linear regression selects the
-same four inputs as logistic regression did.
-
-<<bestglmLogisticOutputB>>=
-outB
-@
-
-As might be expected, in this case, linear regression selects the
-same four inputs as logistic regression did.
-But the time is much faster using 'leaps'.
-
-<<bestglmLogisticFinalTiming>>=
-Tim<-c(TotalTimeA,TotalTimeB)
-names(Tim)<-c("MorganTatar","leaps")
-Tim
-@
 
 \subsection[Binomial Regression]{Binomial Regression}
 \label{subsec:BinomialRegression}

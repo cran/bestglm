@@ -65,8 +65,8 @@ train<-(zprostate[zprostate[,10],])[,-10]
 X<-train[,1:2]
 y<-train[,9]
 set.seed(123321123)
-CVd(X, y, d=7, REP=1000)
-#about 61.0 and takes about 5 sec on 2.7 GHz PC
+CVd(X, y, d=7, REP=10)
+#should set to 1000. Used 10 to save time in example.
 }
 
 \keyword{ models }

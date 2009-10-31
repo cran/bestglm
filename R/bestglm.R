@@ -165,7 +165,7 @@ if (!is.na(match("CV",IC))) {
         CVMethod <- "d"
         K <- ceiling(n*(1-1/(log(n) - 1)))
         if (is.character(t))
-            REP <- 100
+            REP <- 1000
         else
             REP <- t
         }
@@ -180,6 +180,8 @@ if (!is.na(match("CV",IC))) {
 }
 if (IC=="CV" && CVMethod=="DH" && !gaussianQ)
     stop("DH cross-validation not available for non-Gaussian models.")
+if (IC=="CV" && K < 2)
+   stop("CV methods require K > 1!")
 if (IC=="LOOCV" && !gaussianQ)
     stop("LOOCV cross-validation not available for non-Gaussian models.")
 if (IC=="LOOCV") 

@@ -60,12 +60,8 @@ December, Guimaraes, Portugal, pp. 512-523, 2007.
 \examples{
 data(Fires)
 names(Fires)
-#Fit full model and compare with anova and best AIC subset
-#Fit full model
-bestglm(Fires, IC="BICq", t=1)
 #ANOVA for xyarea is significant at 1.1%.
 summary(aov(lburned~xyarea, data=Fires))
-bestglm(Fires, IC="AIC")
 }
 
 \keyword{datasets}

@@ -44,7 +44,7 @@ Davison, A.C. and Hinkley, D.V. (1997). Bootstrap Methods and their Application.
 #the model with the first two inputs and then we compute the CV's
 #using 10-fold CV, 100 times. The result is summarized by a boxplot as well 
 #as the sd.
-NUMSIM<-100
+NUMSIM<-10
 data(zprostate)
 train<-(zprostate[zprostate[,10],])[,-10]
 X<-train[,1:2]
@@ -53,10 +53,7 @@ cvs<-numeric(NUMSIM)
 set.seed(123321123)
 for (isim in 1:NUMSIM)
     cvs[isim]<-CVDH(X,y,K=10,REP=1)[1]
-boxplot(cvs)
-sd(cvs)
-#The CV MSE is about 60.4 with sd 0.0129
-#95% c.i. is (60.2, 60.7)
+summary(cvs)
 }
 
 \keyword{ models }

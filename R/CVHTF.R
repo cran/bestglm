@@ -8,9 +8,9 @@ if (n != nrow(X))
     stop(paste("error: X must have ", n, "rows"))
 p <- ncol(X) #if zero, handle separately
 CVErr <- 0
-varCV <- 0
+sumVarCV <- 0
 for (iREP in 1:REP){
-    fold <- sample(rep(1:K,length=n))
+    fold <- sample(rep(1:K,length=n)) #depends on RNG
     SumSqErr <- 0
     Errs <- numeric(K)
     for (k in 1:K) {
@@ -33,14 +33,15 @@ for (iREP in 1:REP){
         Errs[k]<-mean((y[iTest]-yHat)^2)
         SumSqErr <- SumSqErr + sum((y[iTest]-yHat)^2)
         }
+#CVerr: average EPE overall all K test sets
         CVErr <- CVErr+SumSqErr/n
-        varCV <- varCV+var(Errs)
-#Uncomment this line to output the CV's for each validation sample.
-#See example in the accompanying package vignette.
-#        write(Errs, file=paste("CV", p,".dat",sep=""), ncolumns=1)
+#Changjiang. divide by K. Oct 29, 09. 
+#Brillant!! Yes, we need the variance of the average!
+        sumVarCV <- sumVarCV + var(Errs)/K
     }
+#average over number of replications
     CVErr<-CVErr/REP
-    sdCV<-sqrt(varCV/REP)
+    sdCV<-sqrt(sumVarCV/REP)
     c(CVErr, sdCV)
 }
 
