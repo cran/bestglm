@@ -12,9 +12,10 @@ Additionally, various CV algorithms are also provided.
 \tabular{ll}{
 Package: \tab bestglm\cr
 Type: \tab Package\cr
-Version: \tab 0.20\cr
-Date: \tab 2009-10-31\cr
+Version: \tab 0.30\cr
+Date: \tab 2010-08-28\cr
 License: \tab GLP 2.0 or greater\cr
+LazyData: \tab yes\cr
 LazyLoad: \tab yes\cr
 }
 
@@ -31,7 +32,7 @@ The R package \code{xtable} is needed for the vignette in \code{SimExperimentBIC
 
 \references{
 Xu, C. and McLeod, A.I. (2009). 
-Improved Extended Bayesian Information Criterion. Submitted for publication.
+Bayesian Information Criterion with Bernouilli Prior.
 
 }
 

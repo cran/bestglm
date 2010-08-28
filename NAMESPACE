@@ -1,0 +1,22 @@
+.onLoad <-
+function (lib, pkg) 
+library.dynam("bestglm", pkg, lib)
+
+imports("leaps")
+
+export(
+"CVDH",
+"CVHTF",
+"CVd",
+"LOOCV",
+"bestglm",
+"oneSdRule",
+"print.bestglm",
+"summary.bestglm",
+"to.binary")
+
+#methods
+	S3method("print",	"bestglm")
+	S3method("summary",	"bestglm")
+
+

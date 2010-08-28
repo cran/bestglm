@@ -96,8 +96,8 @@ Methods function 'print.bestglm' and 'summary.bestglm' are provided.
 }
 
 \references{ 
-Xu, C. and McLeod, A.I. (2009). 
-Improved Extended Bayesian Information Criterion. Submitted for publication.
+Xu, C. and McLeod, A.I. (2009).
+Bayesian Information Criterion with Bernouilli Prior.
 
 Chen, J. and Chen, Z. (2008). Extended Bayesian 
 Information Criteria for Model Selection with Large Model Space. Biometrika 2008 95: 759-771.
