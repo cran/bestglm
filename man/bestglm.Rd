@@ -171,6 +171,8 @@ ans<-bestglm(znuclear, IC="BICq")
 e<-resid(ans$BestModel)
 qqnorm(e, ylab="residuals, best model")
 #
+#To save time, none of the remaining examples are run
+\dontrun{
 #Example 4. bestglm, using EBIC, g=1
 bestglm(znuclear, IC="BICg")
 #EBIC with g=0.5
@@ -223,6 +225,7 @@ b<-c(0, 1.5, 0)
 y<-X\%*\%b + rnorm(40)
 Xy<-data.frame(as.matrix.data.frame(X), y=y)
 bestglm(Xy, intercept=FALSE) 
+}
 
 }
 

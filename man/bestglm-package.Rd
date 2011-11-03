@@ -12,8 +12,8 @@ Additionally, various CV algorithms are also provided.
 \tabular{ll}{
 Package: \tab bestglm\cr
 Type: \tab Package\cr
-Version: \tab 0.31\cr
-Date: \tab 2010-12-01\cr
+Version: \tab 0.33\cr
+Date: \tab 2011-11-03\cr
 License: \tab GLP 2.0 or greater\cr
 LazyData: \tab yes\cr
 LazyLoad: \tab yes\cr

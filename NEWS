@@ -3,4 +3,10 @@ CHANGES IN 'bestglm' VERSION 0.30 (2010-08-28)
     o    documentation revisions
 CHANGES IN 'bestglm' VERSION 0.31 (2010-12-01)
     o    NAMESPACE
+CHANGES IN 'bestglm' VERSION 0.32 (2010-12-01)
+    o    minor package warnings fixed as requested
+CHANGES IN 'bestglm' VERSION 0.33 (2010-12-01)
+    o    added dontrun{...} in examples in bestglm.Rd
+
+
 
