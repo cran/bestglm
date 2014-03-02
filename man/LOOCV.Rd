@@ -47,20 +47,22 @@ Technometrics, 13, 469 -475.
 #Example. Compare LOO CV with K-fold CV.
 #Find CV MSE's for LOOCV and compare with K=5, 10, 20, 40, 50, 60
 #Takes about 30 sec
-data(zprostate)
-train<-(zprostate[zprostate[,10],])[,-10]
-X<-train[,1:2]
-y<-train[,9]
-CVLOO<-LOOCV(X,y)
-KS<-c(5,10,20,40,50,60)
-nKS<-length(KS)
-cvs<-numeric(nKS)
-set.seed(1233211231)
-for (iK in 1:nKS)
+\dontrun{
+ data(zprostate)
+ train<-(zprostate[zprostate[,10],])[,-10]
+ X<-train[,1:2]
+ y<-train[,9]
+ CVLOO<-LOOCV(X,y)
+ KS<-c(5,10,20,40,50,60)
+ nKS<-length(KS)
+ cvs<-numeric(nKS)
+ set.seed(1233211231)
+ for (iK in 1:nKS)
     cvs[iK]<-CVDH(X,y,K=KS[iK],REP=10)[1]
-boxplot(cvs)
-abline(h=CVLOO, lwd=3, col="red")
-title(sub="Boxplot of CV's with K=5,10,20,40,50,60 and LOO CV in red")
+ boxplot(cvs)
+ abline(h=CVLOO, lwd=3, col="red")
+ title(sub="Boxplot of CV's with K=5,10,20,40,50,60 and LOO CV in red")
+ }
 }
 
 \keyword{ models }

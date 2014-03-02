@@ -11,7 +11,10 @@ the information criterion IC: AIC, BIC, EBIC, or BICq.
 Alternatively, with IC=`CV' various types of cross-validation may be used.
 }
 \usage{
-bestglm(Xy, family = gaussian, IC = "BIC", t = "default", CVArgs = "default", qLevel = 0.99, TopModels = 5, method = "exhaustive", intercept = TRUE, weights = NULL, nvmax = "default", RequireFullEnumerationQ = FALSE, ...)
+bestglm(Xy, family = gaussian, IC = "BIC", t = "default", 
+ CVArgs = "default", qLevel = 0.99, TopModels = 5, 
+ method = "exhaustive", intercept = TRUE, weights = NULL, 
+ nvmax = "default", RequireFullEnumerationQ = FALSE, ...)
 }
 \arguments{
   \item{Xy}{ Dataframe containing the design matrix X and the output variable y. All columns must be named.}
