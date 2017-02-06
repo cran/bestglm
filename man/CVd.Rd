@@ -2,8 +2,8 @@
 \alias{CVd}
 \title{ Cross-validation using delete-d method.}
 \description{
-The delete-d method for cross-validation uses a random sample of d observations as the validation
-sample.  This is repeated many times.
+The delete-d method for cross-validation uses a random sample of d observations 
+as the validation sample.  This is repeated many times.
 }
 \usage{
 CVd(X, y, d = ceiling(n * (1 - 1/(log(n) - 1))), REP = 100, family = gaussian, ...)
@@ -19,12 +19,14 @@ CVd(X, y, d = ceiling(n * (1 - 1/(log(n) - 1))), REP = 100, family = gaussian, .
 
 \details{
 Shao (1993, 1997) suggested the delete-d algorithm implemented in this function. 
-In this algorithm, a random sample of d observations are taken as the validation sample.
+In this algorithm, a random sample of d observations are taken as the validation
+sample.
 This random sampling is repeated \code{REP} times.
 Shao (1997, p.234, eqn. 4.5 and p.236) suggests \eqn{d= n(1-1/(log n - 1))},
 This is obtained by taking \eqn{\lambda_n = log n} on page 236 (Shao, 1997).
 As shown in the table Shao's recommended choice of the d parameter corresponds
-to validation samples that are typically much larger that used in 10-fold or 5-fold
+to validation samples that are typically much larger that used in 10-fold or 
+5-fold
 cross-validation.  LOOCV corresponds to d=1 only!
 \tabular{llll}{
    n  \tab  d   \tab  K=10   \tab  K=5   	\cr
@@ -37,14 +39,16 @@ cross-validation.  LOOCV corresponds to d=1 only!
 }
 
 \value{
-Vector of two components comprising the cross-validation MSE and its sd based on the MSE in 
-each validation sample.
+Vector of two components comprising the cross-validation MSE and its sd based 
+on the MSE in each validation sample.
 }
 
 \references{
-Shao, Jun (1993). Linear Model Selection by Cross-Validation. Journal of the American Statistical Assocation 88, 486-494.
+Shao, Jun (1993). Linear Model Selection by Cross-Validation. 
+Journal of the American Statistical Assocation 88, 486-494.
 
-Shao, Jun (1997). An Asymptotic Theory for Linear Model Selection.  Statistica Sinica 7, 221-264.
+Shao, Jun (1997). An Asymptotic Theory for Linear Model Selection.  
+Statistica Sinica 7, 221-264.
  }
 
 \author{A.I. McLeod and C. Xu}

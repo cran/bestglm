@@ -26,13 +26,8 @@ Hastie, Tibshirani and Freedman (2009).
 }
 \details{
 A study of 97 men with prostate cancer examined the correlation 
-between PSA 
-(prostate specific antigen) and a number of clinical measurements:
+between PSA (prostate specific antigen) and a number of clinical measurements:
 lcavol, lweight, lbph, svi, lcp, gleason, pgg45
-}
-
-\source{
-\url{http://www-stat-class.stanford.edu/~tibs/ElemStatLearn/  }
 }
 
 \references{
@@ -42,7 +37,7 @@ The Elements of Statistical Learning: Data Mining, Inference, and Prediction.
 }
 
 \examples{
-#Example 1. Prostate data. Table 3.3 HTF.
+#Prostate data. Table 3.3 HTF.
 data(zprostate)
 #full dataset
 trainQ<-zprostate[,10]

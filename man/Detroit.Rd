@@ -1,15 +1,16 @@
 \name{Detroit}
 \alias{Detroit}
 \docType{data}
-\title{Detroit homicide data for 1961-73 used in the book Subset Regression by A.J. Miller}
+\title{Detroit homicide data for 1961-73 used in the book Subset Regression by
+A.J. Miller}
 \description{
-For convenience we have labelled the input variables 1 through 11 to be consistent
-with the notation used in Miller (2002).
+For convenience we have labelled the input variables 1 through 11 to be 
+consistent with the notation used in Miller (2002).
 Only the first 11 variables were used in Miller's analyses.
 The best fitting subset regression with these 11 variables, uses only 3 inputs 
 and has a residual sum of squares of
-6.77 while using forward selection produces a best fit with 3 inputs with residual
-sum of squares 21.19.  
+6.77 while using forward selection produces a best fit with 3 inputs with 
+residual sum of squares 21.19.  
 Backward selection and stagewise methods produce similar results.
 It is remarkable that there is such a big difference.
 Note that the usual forward and backward selection algorithms may fail since
@@ -48,11 +49,15 @@ The data were obtained from StatLib.
 }
 
 \references{
-Fisher, J.C. (1976).  Homicide in Detroit: The Role of Firearms. Criminology, vol.14, 387-400.
+Fisher, J.C. (1976).  Homicide in Detroit: The Role of Firearms. Criminology, 
+vol.14, 387-400.
 
-Gunst, R.F. and Mason, R.L. (1980). Regression analysis and its application: A data-oriented approach. Marcel Dekker.
+Gunst, R.F. and Mason, R.L. (1980). 
+Regression analysis and its application: A data-oriented approach. 
+Marcel Dekker.
 
-Miller, A. J. (2002). Subset Selection in Regression. 2nd Ed. Chapman & Hall/CRC. Boca Raton.
+Miller, A. J. (2002). Subset Selection in Regression. 2nd Ed. 
+Chapman & Hall/CRC. Boca Raton.
 }
 
 \examples{
@@ -83,7 +88,8 @@ out$qTable
 bestglm(Xy,IC="BICq", t=0.05)
 bestglm(Xy,IC="BICq", t=0.00005)
 #It is interesting that the subset model of size 2 is not a subset
-# itself of the size 3 model. These results agree with Miller (2002, Table 3.14).
+# itself of the size 3 model. These results agree with 
+#Miller (2002, Table 3.14).
 #
 #Using delete-d CV with d=4 suggests variables 2,4,6,11
 set.seed(1233211)

@@ -11,8 +11,8 @@ oneSdRule(CVout)
 }
 
 \arguments{
-  \item{CVout}{ A matrix with two columns. First column is the CV and second, its sd.
-  Row ordering is from fewest parameter to most. }
+  \item{CVout}{ A matrix with two columns. First column is the CV and second, 
+  its sd. Row ordering is from fewest parameter to most. }
 }
 
 \value{

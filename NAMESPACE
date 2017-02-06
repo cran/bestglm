@@ -1,17 +1,14 @@
 useDynLib(bestglm)
 
 import("leaps")
+importFrom("lattice", "xyplot", "panel.loess", "panel.xyplot")
+importFrom("grDevices", "densCols")
+importFrom("stats", "aov", "deviance", "gaussian", "glm", "lm",
+             "lm.influence", "logLik", "lsfit", "pchisq", "predict",
+             "qchisq", "resid", "sd", "var")
 
-export(
-"CVDH",
-"CVHTF",
-"CVd",
-"LOOCV",
-"bestglm",
-"oneSdRule",
-"print.bestglm",
-"summary.bestglm",
-"to.binary")
+export("CVDH", "CVHTF", "CVd", "LOOCV", "bestglm", "oneSdRule", "print.bestglm",
+ "summary.bestglm", "to.binary", "dgrid", "vifx")
 
 #methods
 	S3method("print",	"bestglm")

@@ -20,12 +20,13 @@ Algorithm 6.5 (Davison and Hinkley, p.295) is implemented.
 }
 
 \value{
-Vector of two components comprising the cross-validation MSE and its sd based on the MSE in 
-each validation sample.
+Vector of two components comprising the cross-validation MSE and its sd based 
+on the MSE in each validation sample.
 }
 
 \references{
-Davison, A.C. and Hinkley, D.V. (1997). Bootstrap Methods and their Application. Cambridge University Press.
+Davison, A.C. and Hinkley, D.V. (1997). 
+Bootstrap Methods and their Application. Cambridge University Press.
 }
 
 \author{A.I. McLeod and C. Xu}

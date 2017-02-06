@@ -2,10 +2,10 @@
 \alias{LOOCV}
 \title{ Leave-one-out cross-validation }
 \description{
-An observation is removed and the model is fit the the remaining data and this fit used
-to predict the value of the deleted observation.
-This is repeated, n times, for each of the n observations and the mean square error
-is computed.
+An observation is removed and the model is fit the the remaining data and this 
+fit used to predict the value of the deleted observation.
+This is repeated, n times, for each of the n observations and the mean square 
+error is computed.
 }
 \usage{
 LOOCV(X, y)
@@ -22,16 +22,16 @@ suggested by Allen (1971) who also provided an efficient algorithm.
 }
 
 \value{
-Vector of two components comprising the cross-validation MSE and its sd based on the MSE in 
-each validation sample.
+Vector of two components comprising the cross-validation MSE and its sd based 
+on the MSE in each validation sample.
 }
 
 \references{
 Hastie, T., Tibshirani, R. and Friedman, J. (2009). 
 The Elements of Statistical Learning. 2nd Ed.
 
-Allen, D.M. (1971). Mean Square Error of Prediction as a Criterion for Selecting Variables.
-Technometrics, 13, 469 -475. 
+Allen, D.M. (1971). Mean Square Error of Prediction as a Criterion 
+for Selecting Variables. Technometrics, 13, 469 -475. 
  }
 
 \author{A.I. McLeod and C. Xu}

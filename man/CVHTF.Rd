@@ -25,8 +25,8 @@ K-1 subsets are used as training data. When \eqn{K=n},
 where n is the number of observations
 the algorithm is equivalent to leave-one-out CV.
 Normally \eqn{K=10} or \eqn{K=5} are used.
-When \eqn{K<n-1}, their are may be many possible partitions and so the results of
-K-fold CV may vary somewhat depending on the partitions used.
+When \eqn{K<n-1}, their are may be many possible partitions and so the results 
+of K-fold CV may vary somewhat depending on the partitions used.
 In our implementation, random partitions are used and we allow for many
 replications. Note that in the Shao's delete-d method, random samples are
 used to select the valiation data whereas in this method the whole partition
@@ -36,8 +36,8 @@ Then \code{fold} indicates each validation sample in the partition.
 }
 
 \value{
-Vector of two components comprising the cross-validation MSE and its sd based on the MSE in 
-each validation sample.
+Vector of two components comprising the cross-validation MSE and its sd based 
+on the MSE in each validation sample.
 }
 
 \references{
