@@ -43,6 +43,7 @@ Bayesian Information Criterion with Bernouilli Prior.
 }
 
 \examples{
+\dontrun{
 data(zprostate)
 train<-(zprostate[zprostate[,10],])[,-10]
 #Best subset using AIC
@@ -69,5 +70,5 @@ bestglm(SAheart, IC="BIC", family=binomial)
 data(AirQuality)
 #subset
 bestglm(AirQuality, IC="BICq")
-
+}
 }

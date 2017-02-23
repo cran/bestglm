@@ -1,17 +1,19 @@
-useDynLib(bestglm)
-
 import("leaps")
 importFrom("lattice", "xyplot", "panel.loess", "panel.xyplot")
+importFrom("glmnet", "glmnet", "cv.glmnet", "plot.glmnet")
+importFrom("grpreg", "grpreg", "select")
+importFrom("graphics", "layout", "plot", "title")
 importFrom("grDevices", "densCols")
 importFrom("stats", "aov", "deviance", "gaussian", "glm", "lm",
-             "lm.influence", "logLik", "lsfit", "pchisq", "predict",
-             "qchisq", "resid", "sd", "var")
+           "lm.influence", "logLik", "lsfit", "pchisq", 
+           "predict", "coef", "step", "qchisq", "resid", 
+           "sd", "var", "cor")
 
-export("CVDH", "CVHTF", "CVd", "LOOCV", "bestglm", "oneSdRule", "print.bestglm",
- "summary.bestglm", "to.binary", "dgrid", "vifx")
+export("CVDH", "CVHTF", "CVd", "LOOCV", "bestglm", "oneSdRule", 
+ "print.bestglm", "summary.bestglm", "to.binary", "dgrid", 
+ "vifx", "trainTestPartition", "glmnetGridTable", 
+ "glmnetPredict", "grpregPredict", "sphereX", "NNPredict")
 
 #methods
 	S3method("print",	"bestglm")
 	S3method("summary",	"bestglm")
-
-

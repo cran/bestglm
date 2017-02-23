@@ -10,6 +10,11 @@ CHANGES IN 'bestglm' VERSION 0.33 (2010-12-01)
 CHANGES IN 'bestglm' VERSION 0.35 (2017-02-04)
     o    added datasets: mcdonald, hivif, rubber
     o    added functions: dgrid, vifx
+CHANGES IN 'bestglm' VERSION 0.36 (2017-02-23)
+    o    added datasets: Iowa
+    o    added functions: glmnetPredict, grpregPredict, sphereX, NNPredict,
+              glmnetGridTable
+    o    replaced to.binary function
 
 
 
