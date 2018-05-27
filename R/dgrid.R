@@ -16,5 +16,5 @@ dgrid <- function(XyDF, span=0.8) {
  xyplot(y ~ x | whichx, data=df, panel=function(x,y){
   panel.xyplot(x, y, col=densCols(x, y), pch=20, cex=1)
   panel.loess(x, y, col="black", lwd=2, span=span, degree=1)
- }, xlab="", ylab=yvar, main="")
+ }, xlab="", ylab=yvar, main="Scaled Variables Dependency Plot")
 }

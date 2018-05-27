@@ -7,6 +7,8 @@ Partition Dataframe into Train/Test Samples
 \description{
 Dataframe used to create training and test datasets using
 specified fraction for the training sample.
+The data matrix must be comprised of continuous variables
+only (no factors).
 }
 \usage{
 trainTestPartition(Xy, trainFrac = 2/3)
@@ -16,6 +18,8 @@ trainTestPartition(Xy, trainFrac = 2/3)
   \item{Xy}{
 Dataframe with column names, last column is the response
 variable and others are the regression input variables.
+The data matrix must be comprised of continuous variables
+only (no factors).
 }
   \item{trainFrac}{
 Fraction to be used for the training sample.

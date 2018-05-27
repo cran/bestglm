@@ -15,6 +15,14 @@ CHANGES IN 'bestglm' VERSION 0.36 (2017-02-23)
     o    added functions: glmnetPredict, grpregPredict, sphereX, NNPredict,
               glmnetGridTable
     o    replaced to.binary function
+CHANGES IN 'bestglm' VERSION 0.37 (2018-05-27)
+    o    added function: pcreg with plot, print and predict methods
+    o    added function: plot1SDRule to enable with caret::train()
+    o    revised oneSDRule to work with caret::train()
+    o    moved vignettes PDF's to inst directroy
+    o    replaced cat() with message() - thanks Bob O'Hara, Institutt for matematiske fag
+        
+    
 
 
 

@@ -1,10 +1,11 @@
 \name{dgrid}
 \alias{dgrid}
 \title{
-Dependency Plots of Output vs Each Input
+Scaled Variables Dependency Plots: Output vs Inputs
 }
 \description{
 A lattice grid plot is produced for the output vs. each input.
+The variables are scaled to have mean zero and variance one.
 }
 \usage{
 dgrid(XyDF, span=0.8)

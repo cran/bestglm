@@ -2,18 +2,27 @@ import("leaps")
 importFrom("lattice", "xyplot", "panel.loess", "panel.xyplot")
 importFrom("glmnet", "glmnet", "cv.glmnet", "plot.glmnet")
 importFrom("grpreg", "grpreg", "select")
-importFrom("graphics", "layout", "plot", "title")
+importFrom("pls", "plsr")
+importFrom("graphics","layout","plot","title","abline","points","segments")
 importFrom("grDevices", "densCols")
 importFrom("stats", "aov", "deviance", "gaussian", "glm", "lm",
            "lm.influence", "logLik", "lsfit", "pchisq", 
            "predict", "coef", "step", "qchisq", "resid", 
-           "sd", "var", "cor")
+           "sd", "var", "cor", "AIC", "BIC", "fitted", "prcomp")
 
-export("CVDH", "CVHTF", "CVd", "LOOCV", "bestglm", "oneSdRule", 
+export("CVDH", "CVHTF", "CVd", "LOOCV", "bestglm", "oneSDRule", 
  "print.bestglm", "summary.bestglm", "to.binary", "dgrid", 
- "vifx", "trainTestPartition", "glmnetGridTable", 
+ "vifx", "trainTestPartition", "glmnetGridTable", "pcreg",
+ "print.pcreg", "summary.pcreg", "predict.pcreg", "plot.pcreg", 
+ "residuals.pcreg", "fitted.pcreg", "pcreg", "plot1SDRule",
  "glmnetPredict", "grpregPredict", "sphereX", "NNPredict")
 
 #methods
-	S3method("print",	"bestglm")
+	S3method("print",	  "bestglm")
 	S3method("summary",	"bestglm")
+	S3method("print",	  "pcreg")
+	S3method("summary",	"pcreg")
+	S3method("plot",	  "pcreg")
+	S3method("predict",	"pcreg")
+	S3method("residuals",	  "pcreg")
+	S3method("fitted",	 "pcreg")

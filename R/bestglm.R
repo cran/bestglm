@@ -90,14 +90,14 @@ if (any(NumDF>1) && CVQ)
 #if gaussian family, no factor with more than 2 levels, use 'leaps'
 LEAPSQ <- gaussianQ && !any(NumDF>1) &&!RequireFullEnumerationQ
 if (!LEAPSQ && !(IC=="BICq" && (t==0 || t==1))) {
-    if (!gaussianQ)
-        cat("Morgan-Tatar search since family is non-gaussian.",fill=TRUE)
+    if (!gaussianQ) 
+        message("Morgan-Tatar search since family is non-gaussian.")
     if (any(NumDF>1)&&gaussianQ)
-        cat("Morgan-Tatar search since factors present with more than 2 levels.",fill=TRUE)
+        message("Morgan-Tatar search since factors present with more than 2 levels.")
     if (any(NumDF>1)&&!gaussianQ)
-        cat("Note: factors present with more than 2 levels.",fill=TRUE)
+     message("Note: factors present with more than 2 levels.")
     if (RequireFullEnumerationQ&&gaussianQ&&all(NumDF==1))
-        cat("Morgan-Tatar search RequireFullEnumerationQ=TRUE",fill=TRUE)
+     message("Morgan-Tatar search RequireFullEnumerationQ=TRUE")
     }
 #!LEAPSQ means Morgan-Tatar search. 
 #In this case either 'lm' or #'glm' is used. 
@@ -112,7 +112,8 @@ glmQ <- !(LEAPSQ || gaussianQ)
 if (!all(FactorsQ)&& IncludeInterceptQ){
     X2<-X[,!FactorsQ,drop=FALSE] #removing factor variables
     p2<-ncol(X2)
-    Column1Test<-apply(X2-matrix(rep(1,n*p2),ncol=p2), MARGIN=2, function(x) 0==sum(abs(x)))
+    Column1Test<-apply(X2-matrix(rep(1,n*p2),ncol=p2), MARGIN=2, 
+                       function(x) 0==sum(abs(x), na.rm=TRUE))
     if (any(Column1Test))
       stop("Column of 1's can't be used! Intercept always included.")
 }
@@ -191,6 +192,9 @@ if (IC=="LOOCV")
 #
 #Now do we use exhaustive search
 if (!LEAPSQ){
+ if (p>15) {
+  stop(paste0(paste("p =", p), ". must be <= 15 for GLM."))
+ }
 logLAllModels <- rep(-Inf,2^p)
 AllModels <- rep(Inf,2^p) #initial IC value
 #Special case -- we won't bother with full exhaustive enumeration
@@ -237,11 +241,12 @@ else
         out <- list(BestModel=ans, BestModels=NA, Bestq=NA, qTable=NA, Subsets=NA,    
             Title=ICLabel, ModelReport=ModelReport)
         class(out) <- "bestglm"
-        cat("Note: in this special case with BICq with t =", t, "only fitted model is returned.",fill=TRUE)
+        message("Note: in this special case with BICq with t =", 
+                t, "only fitted model is returned.")
         if (t ==0)
-            cat("With t=0, null model is fitted.",fill=TRUE)
+            message("With t=0, null model is fitted.")
         else
-            cat("With t=1, full model is fitted.",fill=TRUE)
+            message("With t=1, full model is fitted.")
         return(out)
     }
 #Use glm and Morgan & Tatar method for exhaustive enumeration
@@ -383,7 +388,8 @@ else {
             X[,indFactors[i]] <- c(unclass(X[,indFactors[i]])-1)
     }
 if (BinaryCategoricalQ)
-    cat("Note: binary categorical variables converted to 0-1 so 'leaps' could be used.",fill=TRUE)
+    message(
+  "binary categorical variables converted to 0-1 so 'leaps' could be used.")
 #
         if (is.null(weights))
             WEIGHTS<-rep(1,n)
@@ -456,7 +462,7 @@ if (CVQ){
         else #LOOCV only other possibity here
             CVout[j,] <- LOOCV(X[,SubsetsAdj[j,],drop=FALSE], y)
         }
-    indBest <- ifelse(CVMethod=="HTF", oneSdRule(CVout),which.min(CVout[,1]))
+    indBest <- ifelse(CVMethod=="HTF", oneSDRule(CVout),which.min(CVout[,1]))
     }
 #Information criterion methods. Only for leaps do we need these.
 else if (LEAPSQ) {
