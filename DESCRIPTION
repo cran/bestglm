@@ -1,7 +1,7 @@
 Package: bestglm
 Type: Package
 Title: Best Subset GLM and Regression Utilities
-Version: 0.37
+Version: 0.37.1
 Date: 2018-05-27
 Author: A.I. McLeod  and Changjiang Xu
 Maintainer: A.I. McLeod <aimcleod@uwo.ca>
@@ -15,8 +15,7 @@ LazyData: yes
 Classification/ACM: G.3, G.4, I.5.1
 Classification/MSC: 62M10, 91B84
 License: GPL (>= 2)
-URL: http://www.stats.uwo.ca/faculty/aim
 NeedsCompilation: yes
-Packaged: 2018-05-27 19:27:22 UTC; IanMcLeod
+Packaged: 2019-11-12 07:03:37 UTC; ripley
 Repository: CRAN
-Date/Publication: 2018-05-27 21:03:04 UTC
+Date/Publication: 2019-11-12 08:14:26 UTC

@@ -1,6 +1,6 @@
 import("leaps")
 importFrom("lattice", "xyplot", "panel.loess", "panel.xyplot")
-importFrom("glmnet", "glmnet", "cv.glmnet", "plot.glmnet")
+importFrom("glmnet", "glmnet", "cv.glmnet")
 importFrom("grpreg", "grpreg", "select")
 importFrom("pls", "plsr")
 importFrom("graphics","layout","plot","title","abline","points","segments")
