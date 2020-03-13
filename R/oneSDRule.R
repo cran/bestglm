@@ -4,8 +4,8 @@ oneSDRule<- function (CVout)
 #CVout[,1] - cv estimates
 #CVout[,2] - sd of estimates
 #extended now to take output from caret::train()
- stopifnot(is.matrix(CVout)||is.data.frame(CVout)||class(CVout)=="train")
- if (class(CVout)=="train") {
+ stopifnot(is.matrix(CVout)||is.data.frame(CVout)||class(CVout)[1]=="train")
+ if (class(CVout)[1]=="train") {
   ans <- CVout
   CVout <- with(ans$results, cbind(RMSE, RMSESD))
  } 

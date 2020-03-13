@@ -1,4 +1,4 @@
-131fa2d5961e284dd9ae0e7b49905ce6 *DESCRIPTION
+574d6969a97d99c3a723a472bbdbd60d *DESCRIPTION
 4d5781bb2e22171dd2fbe82c9ef9ba8d *NAMESPACE
 ca0d0186f47f7ddda1ca99385cec28e7 *NEWS
 740b59d0fafc8cee5ec11169a2434c70 *R/CVDH.R
@@ -9,9 +9,9 @@ be0540693b3353d3e4ab19b03c3aee03 *R/LOOCV.R
 0a19c4ea7538b95afa5c8d3138dc1e87 *R/dgrid.R
 374613445d7cf87d684e7c88d2dd3561 *R/glmnetPredict.R
 f5d5b8f63ecca0e2bf5b9814c7a0f41d *R/grpregPredict.R
-d3477a0db39c99dce7efef8b1be852a2 *R/oneSDRule.R
+2aef1486aba3b4c073a259b2586e2cce *R/oneSDRule.R
 2150e60cdedfc5d8a86d501525ddd81e *R/pcreg.R
-8222c1ee648a4fa92e82421bf61d83d8 *R/plot1SDRule.R
+409f285f7a0cfb6cc639874c1401e473 *R/plot1SDRule.R
 c5cdb0d31bdcb18abaade658773e2016 *R/print.bestglm.R
 6a698ea6faf6c8cb3dbfb7f5d9c897ab *R/sphereX.R
 4734c4010755f21cee33a32d96182e5b *R/summary.bestglm.R

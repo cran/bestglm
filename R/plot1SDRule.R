@@ -1,7 +1,7 @@
 plot1SDRule <- function(ans, main="", sub="", xlab="df", ylab="EPE" ) {
-  stopifnot(class(ans)=="train"||
+  stopifnot(class(ans)[1]=="train"||
              ((is.matrix(ans)||is.data.frame(ans))&&ncol(ans)==2))
-  if (class(ans)=="train") {
+  if (class(ans)[1]=="train") {
     nMin <- unlist(ans$bestTune)
     names(ans$results)[1] <- "tunePar"
     with(ans$results, plot(tunePar, RMSE, xlab=xlab, ylab=ylab))
